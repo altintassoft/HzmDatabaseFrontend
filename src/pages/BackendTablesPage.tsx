@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, ChevronDown, ChevronUp, Database, Filter } from 'lucide-react';
+import { ArrowLeft, Search, ChevronDown, ChevronUp, Database, Filter, X, Eye, RefreshCw } from 'lucide-react';
 
 // Table metadata from TABLOLAR.md
 interface TableColumn {
@@ -100,12 +100,29 @@ const BACKEND_TABLES: TableInfo[] = [
   },
 ];
 
+interface TableData {
+  schema: string;
+  table: string;
+  columns: any[];
+  total: number;
+  limit: number;
+  offset: number;
+  data: any[];
+}
+
 const BackendTablesPage = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [schemaFilter, setSchemaFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [expandedTable, setExpandedTable] = useState<string | null>(null);
+  
+  // Modal state
+  const [showDataModal, setShowDataModal] = useState(false);
+  const [selectedTable, setSelectedTable] = useState<{ schema: string; table: string } | null>(null);
+  const [tableData, setTableData] = useState<TableData | null>(null);
+  const [isLoadingData, setIsLoadingData] = useState(false);
+  const [dataError, setDataError] = useState<string | null>(null);
 
   // Filter tables
   const filteredTables = BACKEND_TABLES.filter(table => {
@@ -117,6 +134,43 @@ const BackendTablesPage = () => {
 
   const toggleExpand = (tableName: string) => {
     setExpandedTable(expandedTable === tableName ? null : tableName);
+  };
+
+  // Fetch table data
+  const fetchTableData = async (schema: string, table: string) => {
+    setIsLoadingData(true);
+    setDataError(null);
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || '/api/v1';
+      const response = await fetch(`${API_URL}/debug/table/${schema}/${table}/data?limit=100`);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch data: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      setTableData(data);
+    } catch (error) {
+      console.error('Error fetching table data:', error);
+      setDataError(error instanceof Error ? error.message : 'Unknown error');
+    } finally {
+      setIsLoadingData(false);
+    }
+  };
+
+  // Open modal and fetch data
+  const openDataModal = (schema: string, table: string) => {
+    setSelectedTable({ schema, table });
+    setShowDataModal(true);
+    fetchTableData(schema, table);
+  };
+
+  // Close modal
+  const closeDataModal = () => {
+    setShowDataModal(false);
+    setSelectedTable(null);
+    setTableData(null);
+    setDataError(null);
   };
 
   return (
@@ -273,18 +327,27 @@ const BackendTablesPage = () => {
                     </div>
 
                     {/* Action */}
-                    <div className="col-span-1 text-center">
+                    <div className="col-span-1 text-center space-y-2">
                       {table.status === 'active' && (
-                        <button
-                          onClick={() => toggleExpand(table.fullName)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        >
-                          {expandedTable === table.fullName ? (
-                            <ChevronUp size={20} />
-                          ) : (
-                            <ChevronDown size={20} />
-                          )}
-                        </button>
+                        <>
+                          <button
+                            onClick={() => openDataModal(table.schema, table.name)}
+                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors inline-flex items-center"
+                            title="Verileri Görüntüle"
+                          >
+                            <Eye size={20} />
+                          </button>
+                          <button
+                            onClick={() => toggleExpand(table.fullName)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors block mx-auto"
+                          >
+                            {expandedTable === table.fullName ? (
+                              <ChevronUp size={20} />
+                            ) : (
+                              <ChevronDown size={20} />
+                            )}
+                          </button>
+                        </>
                       )}
                     </div>
                   </div>
@@ -378,6 +441,120 @@ const BackendTablesPage = () => {
           </div>
         </div>
       </main>
+
+      {/* Data Modal */}
+      {showDataModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-2xl w-full max-w-7xl max-h-[90vh] flex flex-col">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <div className="flex items-center space-x-3">
+                <Database className="text-blue-600" size={28} />
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-800">
+                    {selectedTable ? `${selectedTable.schema}.${selectedTable.table}` : 'Tablo Verileri'}
+                  </h2>
+                  <p className="text-sm text-gray-600">
+                    {tableData ? `Toplam ${tableData.total} kayıt (İlk ${tableData.limit} gösteriliyor)` : 'Veriler yükleniyor...'}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={closeDataModal}
+                className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="flex-1 overflow-auto p-6">
+              {isLoadingData ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <RefreshCw className="animate-spin text-blue-600 mb-4" size={48} />
+                  <p className="text-gray-600">Veriler yükleniyor...</p>
+                </div>
+              ) : dataError ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <div className="text-red-600 text-center">
+                    <p className="font-semibold mb-2">❌ Hata Oluştu</p>
+                    <p className="text-sm">{dataError}</p>
+                  </div>
+                </div>
+              ) : tableData && tableData.data.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse border border-gray-300">
+                    <thead>
+                      <tr className="bg-gray-100">
+                        {tableData.columns.map((col) => (
+                          <th
+                            key={col.column_name}
+                            className="border border-gray-300 px-4 py-2 text-left text-xs font-semibold text-gray-700 whitespace-nowrap"
+                          >
+                            {col.column_name}
+                            <div className="text-xs font-normal text-gray-500 mt-1">
+                              {col.data_type}
+                            </div>
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {tableData.data.map((row, rowIndex) => (
+                        <tr key={rowIndex} className="hover:bg-gray-50">
+                          {tableData.columns.map((col) => (
+                            <td
+                              key={col.column_name}
+                              className="border border-gray-300 px-4 py-2 text-sm text-gray-800 max-w-xs truncate"
+                              title={String(row[col.column_name] || '')}
+                            >
+                              {row[col.column_name] !== null && row[col.column_name] !== undefined
+                                ? String(row[col.column_name])
+                                : '-'}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : tableData && tableData.data.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <Database className="text-gray-400 mb-4" size={48} />
+                  <p className="text-gray-600">Bu tabloda henüz veri yok</p>
+                </div>
+              ) : null}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50">
+              <div className="text-sm text-gray-600">
+                {tableData && (
+                  <span>
+                    Gösterilen: <strong>{tableData.data.length}</strong> / Toplam: <strong>{tableData.total}</strong>
+                  </span>
+                )}
+              </div>
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => selectedTable && fetchTableData(selectedTable.schema, selectedTable.table)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+                  disabled={isLoadingData}
+                >
+                  <RefreshCw size={16} className={`mr-2 ${isLoadingData ? 'animate-spin' : ''}`} />
+                  Yenile
+                </button>
+                <button
+                  onClick={closeDataModal}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+                >
+                  Kapat
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
