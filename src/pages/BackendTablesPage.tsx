@@ -211,7 +211,7 @@ const BackendTablesPage = () => {
     }
   };
 
-  // Copy all tables info
+  // Copy all tables info with full details
   const copyAllTables = async () => {
     let text = `📋 HZM VERİ TABANI - TABLO ENVANTERİ\n`;
     text += `Tarih: ${new Date().toLocaleString('tr-TR')}\n`;
@@ -222,6 +222,7 @@ const BackendTablesPage = () => {
       text += `${table.description || ''}\n\n`;
       
       if (table.status === 'active') {
+        // Kolonlar - Detaylı Liste
         text += `KOLONLAR (${table.columnCount}):\n`;
         table.columns.forEach((col, idx) => {
           text += `${idx + 1}. ${col.name} (${col.type})`;
@@ -235,16 +236,80 @@ const BackendTablesPage = () => {
         text += `- Foreign Keys: ${table.foreignKeys}\n`;
         text += `- RLS: ${table.rls ? '✅ Aktif' : '❌ Pasif'}\n`;
         text += `- Durum: ✅ Oluştu\n`;
+
+        // Detaylı Kolon Bilgileri
+        if (table.columns.length > 0) {
+          text += `\nDETAYLI KOLON BİLGİLERİ:\n`;
+          text += `${'─'.repeat(80)}\n`;
+          text += `| # | KOLON ADI          | TİP                | KISITLAR           | VARSAYILAN      |\n`;
+          text += `${'─'.repeat(80)}\n`;
+          
+          table.columns.forEach((col, idx) => {
+            const num = String(idx + 1).padEnd(3);
+            const name = col.name.padEnd(18);
+            const type = col.type.padEnd(18);
+            const constraint = (col.constraint || '-').padEnd(18);
+            const defaultVal = (col.default || '-').padEnd(15);
+            text += `| ${num}| ${name}| ${type}| ${constraint}| ${defaultVal}|\n`;
+          });
+          
+          text += `${'─'.repeat(80)}\n`;
+        }
+
+        // İndeksler (eğer varsa)
+        if (table.indexes > 0) {
+          text += `\nİNDEKSLER (${table.indexes}):\n`;
+          // Note: Bu bilgi BACKEND_TABLES içinde detaylı yok, sadece sayı var
+          // Gerçek index bilgileri için backend'den çekilmeli
+          text += `- Toplam ${table.indexes} index tanımlanmış\n`;
+        }
+
+        // Foreign Keys (eğer varsa)
+        if (table.foreignKeys > 0) {
+          text += `\nFOREIGN KEYS (${table.foreignKeys}):\n`;
+          // Kolon constraint'lerinden FK'ları bul
+          table.columns.filter(col => col.constraint && col.constraint.includes('FK')).forEach((col) => {
+            text += `- ${col.name}: ${col.constraint}\n`;
+          });
+        }
+
+        // RLS Policies
+        if (table.rls) {
+          text += `\nRLS (Row Level Security):\n`;
+          text += `- ✅ RLS Aktif (Tenant isolation enabled)\n`;
+          text += `- Policy: tenant_id bazlı izolasyon\n`;
+        }
+
       } else {
         text += `DURUM: ⏳ Bekliyor (${table.description})\n`;
+        text += `\nNOT: Bu tablo henüz oluşturulmadı.\n`;
+        text += `Phase: ${table.description?.includes('Phase 2') ? 'Phase 2' : 'TBD'}\n`;
       }
       
       text += `\n${'='.repeat(60)}\n\n`;
     });
 
-    text += `\nTOPLAM TABLO SAYISI: ${filteredTables.length}\n`;
+    // Özet İstatistikler
+    text += `\n📊 ÖZET İSTATİSTİKLER:\n`;
+    text += `${'─'.repeat(40)}\n`;
+    text += `TOPLAM TABLO SAYISI: ${filteredTables.length}\n`;
     text += `AKTİF TABLO: ${filteredTables.filter(t => t.status === 'active').length}\n`;
     text += `BEKLİYOR: ${filteredTables.filter(t => t.status === 'pending').length}\n`;
+    
+    const totalColumns = filteredTables.filter(t => t.status === 'active').reduce((sum, t) => sum + t.columnCount, 0);
+    const totalIndexes = filteredTables.filter(t => t.status === 'active').reduce((sum, t) => sum + t.indexes, 0);
+    const totalFKs = filteredTables.filter(t => t.status === 'active').reduce((sum, t) => sum + t.foreignKeys, 0);
+    const rlsEnabled = filteredTables.filter(t => t.status === 'active' && t.rls).length;
+    
+    text += `\nAKTİF TABLOLARDA:\n`;
+    text += `- Toplam Kolon: ${totalColumns}\n`;
+    text += `- Toplam İndeks: ${totalIndexes}\n`;
+    text += `- Toplam Foreign Key: ${totalFKs}\n`;
+    text += `- RLS Aktif Tablo: ${rlsEnabled}\n`;
+    text += `${'─'.repeat(40)}\n`;
+    
+    text += `\n💡 NOT: Bu rapor frontend'deki mock data'dan oluşturulmuştur.\n`;
+    text += `Gerçek backend verileri için Railway Dashboard veya API kullanın.\n`;
 
     try {
       await navigator.clipboard.writeText(text);
