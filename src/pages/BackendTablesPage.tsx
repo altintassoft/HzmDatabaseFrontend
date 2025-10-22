@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, ChevronDown, ChevronUp, Database, Filter, X, Eye, RefreshCw, Copy, Check } from 'lucide-react';
 
-// Table metadata from TABLOLAR.md
+// 🚀 NO MORE MOCK DATA! Dynamic data from backend API
+
 interface TableColumn {
   name: string;
   type: string;
@@ -23,83 +24,6 @@ interface TableInfo {
   description?: string;
 }
 
-const BACKEND_TABLES: TableInfo[] = [
-  {
-    schema: 'core',
-    name: 'tenants',
-    fullName: 'core.tenants',
-    columnCount: 13,
-    columns: [
-      { name: 'id', type: 'SERIAL', constraint: 'PK', default: 'AUTO' },
-      { name: 'name', type: 'VARCHAR(200)', constraint: 'NOT NULL' },
-      { name: 'slug', type: 'VARCHAR(100)', constraint: 'UNIQUE' },
-      { name: 'domain', type: 'VARCHAR(255)', constraint: 'UNIQUE' },
-      { name: 'default_language', type: 'VARCHAR(10)', default: "'en'" },
-      { name: 'default_currency', type: 'VARCHAR(3)', default: "'USD'" },
-      { name: 'plan', type: 'VARCHAR(50)', default: "'free'" },
-      { name: 'is_active', type: 'BOOLEAN', default: 'TRUE' },
-      { name: 'is_deleted', type: 'BOOLEAN', default: 'FALSE' },
-      { name: 'deleted_at', type: 'TIMESTAMPTZ' },
-      { name: 'version', type: 'INTEGER', default: '1' },
-      { name: 'created_at', type: 'TIMESTAMPTZ', default: 'NOW()' },
-      { name: 'updated_at', type: 'TIMESTAMPTZ', default: 'NOW()' },
-    ],
-    status: 'active',
-    indexes: 2,
-    foreignKeys: 0,
-    rls: false,
-    description: 'Multi-tenant organizasyonlar',
-  },
-  {
-    schema: 'core',
-    name: 'users',
-    fullName: 'core.users',
-    columnCount: 11,
-    columns: [
-      { name: 'id', type: 'SERIAL', constraint: 'PK', default: 'AUTO' },
-      { name: 'tenant_id', type: 'INTEGER', constraint: 'FK → core.tenants(id)' },
-      { name: 'email', type: 'VARCHAR(255)', constraint: 'NOT NULL' },
-      { name: 'password_hash', type: 'VARCHAR(255)', constraint: 'NOT NULL' },
-      { name: 'role', type: 'VARCHAR(50)', default: "'user'" },
-      { name: 'is_active', type: 'BOOLEAN', default: 'TRUE' },
-      { name: 'is_deleted', type: 'BOOLEAN', default: 'FALSE' },
-      { name: 'deleted_at', type: 'TIMESTAMPTZ' },
-      { name: 'version', type: 'INTEGER', default: '1' },
-      { name: 'created_at', type: 'TIMESTAMPTZ', default: 'NOW()' },
-      { name: 'updated_at', type: 'TIMESTAMPTZ', default: 'NOW()' },
-    ],
-    status: 'active',
-    indexes: 3,
-    foreignKeys: 1,
-    rls: true,
-    description: 'Kullanıcılar (multi-tenant)',
-  },
-  {
-    schema: 'core',
-    name: 'projects',
-    fullName: 'core.projects',
-    columnCount: 0,
-    columns: [],
-    status: 'pending',
-    indexes: 0,
-    foreignKeys: 0,
-    rls: false,
-    description: 'Henüz oluşturulmadı - Phase 2',
-  },
-  {
-    schema: 'app',
-    name: 'generic_data',
-    fullName: 'app.generic_data',
-    columnCount: 0,
-    columns: [],
-    status: 'pending',
-    indexes: 0,
-    foreignKeys: 0,
-    rls: false,
-    description: 'Henüz oluşturulmadı - Phase 2 (⭐ EN ÖNEMLİ!)',
-  },
-];
-
 interface TableData {
   schema: string;
   table: string;
@@ -117,6 +41,11 @@ const BackendTablesPage = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [expandedTable, setExpandedTable] = useState<string | null>(null);
   
+  // Tables state (from API)
+  const [allTables, setAllTables] = useState<TableInfo[]>([]);
+  const [isLoadingTables, setIsLoadingTables] = useState(true);
+  const [tablesError, setTablesError] = useState<string | null>(null);
+  
   // Modal state
   const [showDataModal, setShowDataModal] = useState(false);
   const [selectedTable, setSelectedTable] = useState<{ schema: string; table: string } | null>(null);
@@ -127,8 +56,34 @@ const BackendTablesPage = () => {
   // Copy state
   const [copiedTable, setCopiedTable] = useState<string | null>(null);
 
+  // Fetch tables from backend
+  useEffect(() => {
+    fetchTables();
+  }, []);
+
+  const fetchTables = async () => {
+    setIsLoadingTables(true);
+    setTablesError(null);
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || '/api/v1';
+      const response = await fetch(`${API_URL}/debug/tables-detailed`);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch tables: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      setAllTables(data.tables || []);
+    } catch (error) {
+      console.error('Error fetching tables:', error);
+      setTablesError(error instanceof Error ? error.message : 'Unknown error');
+    } finally {
+      setIsLoadingTables(false);
+    }
+  };
+
   // Filter tables
-  const filteredTables = BACKEND_TABLES.filter(table => {
+  const filteredTables = allTables.filter(table => {
     const matchesSearch = table.fullName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesSchema = schemaFilter === 'all' || table.schema === schemaFilter;
     const matchesStatus = statusFilter === 'all' || table.status === statusFilter;
@@ -308,8 +263,9 @@ const BackendTablesPage = () => {
     text += `- RLS Aktif Tablo: ${rlsEnabled}\n`;
     text += `${'─'.repeat(40)}\n`;
     
-    text += `\n💡 NOT: Bu rapor frontend'deki mock data'dan oluşturulmuştur.\n`;
-    text += `Gerçek backend verileri için Railway Dashboard veya API kullanın.\n`;
+    text += `\n💡 NOT: Bu rapor backend'deki GERÇEK verilerden oluşturulmuştur.\n`;
+    text += `🚀 Mock data YOK! API: GET /api/v1/debug/tables-detailed\n`;
+    text += `📅 Rapor Tarihi: ${new Date().toISOString()}\n`;
 
     try {
       await navigator.clipboard.writeText(text);
@@ -345,22 +301,33 @@ const BackendTablesPage = () => {
                 </div>
               </div>
               
-              <button
-                onClick={copyAllTables}
-                className="flex items-center px-4 py-2 bg-purple-600 text-white hover:bg-purple-700 rounded-lg transition-colors"
-              >
-                {copiedTable === 'all' ? (
-                  <>
-                    <Check size={20} className="mr-2" />
-                    Kopyalandı!
-                  </>
-                ) : (
-                  <>
-                    <Copy size={20} className="mr-2" />
-                    Tümünü Kopyala
-                  </>
-                )}
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={fetchTables}
+                  className="flex items-center px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition-colors"
+                  disabled={isLoadingTables}
+                  title="Backend'den tabloları yenile"
+                >
+                  <RefreshCw size={20} className={`mr-2 ${isLoadingTables ? 'animate-spin' : ''}`} />
+                  Yenile
+                </button>
+                <button
+                  onClick={copyAllTables}
+                  className="flex items-center px-4 py-2 bg-purple-600 text-white hover:bg-purple-700 rounded-lg transition-colors"
+                >
+                  {copiedTable === 'all' ? (
+                    <>
+                      <Check size={20} className="mr-2" />
+                      Kopyalandı!
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={20} className="mr-2" />
+                      Tümünü Kopyala
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -430,7 +397,27 @@ const BackendTablesPage = () => {
 
           {/* Table Body */}
           <div className="divide-y divide-gray-200">
-            {filteredTables.length === 0 ? (
+            {isLoadingTables ? (
+              <div className="text-center py-12">
+                <RefreshCw className="mx-auto text-blue-600 mb-4 animate-spin" size={48} />
+                <p className="text-gray-600 font-semibold">Backend'den tablolar yükleniyor...</p>
+                <p className="text-sm text-gray-500 mt-2">🚀 Mock data yok, gerçek veriler!</p>
+              </div>
+            ) : tablesError ? (
+              <div className="text-center py-12">
+                <div className="text-red-600 mb-4">
+                  <X className="mx-auto mb-2" size={48} />
+                  <p className="font-semibold">Tablolar yüklenemedi</p>
+                  <p className="text-sm mt-2">{tablesError}</p>
+                </div>
+                <button
+                  onClick={fetchTables}
+                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Tekrar Dene
+                </button>
+              </div>
+            ) : filteredTables.length === 0 ? (
               <div className="text-center py-12">
                 <Database className="mx-auto text-gray-400 mb-4" size={48} />
                 <p className="text-gray-500">Aradığınız kriterlerde tablo bulunamadı</p>
