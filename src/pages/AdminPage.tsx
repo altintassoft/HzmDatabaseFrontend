@@ -250,8 +250,8 @@ const AdminPage = () => {
               Plan Ekle
             </button>
             <button
-              onClick={() => navigate('/database/state')}
-              className="flex items-center justify-center px-4 py-3 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors"
+              onClick={() => navigate('/system-settings')}
+              className="flex items-center justify-center px-4 py-3 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors"
             >
               <Settings size={20} className="mr-2" />
               Sistem Ayarları
