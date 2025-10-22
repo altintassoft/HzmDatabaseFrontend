@@ -12,7 +12,8 @@ import {
   FileText,
   Crown,
   Activity,
-  Megaphone
+  Megaphone,
+  Server
 } from 'lucide-react';
 
 const AdminPage = () => {
@@ -109,7 +110,7 @@ const AdminPage = () => {
         </div>
 
         {/* Database Management Cards */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-6 gap-6 mb-8">
           <div 
             onClick={() => navigate('/database/users')}
             className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-all cursor-pointer border-l-4 border-blue-500"
@@ -203,12 +204,30 @@ const AdminPage = () => {
               Kampanya oluştur ve analiz et
             </div>
           </div>
+
+          {/* NEW: Backend Tables Card */}
+          <div 
+            onClick={() => navigate('/backend-tables')}
+            className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-all cursor-pointer border-l-4 border-cyan-500"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <Server className="text-cyan-600 mr-3" size={24} />
+                <h3 className="text-lg font-semibold text-gray-800">Backend Tabloları</h3>
+              </div>
+              <div className="text-2xl font-bold text-cyan-600">🗄️</div>
+            </div>
+            <p className="text-sm text-gray-600">Railway tablo envanteri</p>
+            <div className="mt-3 text-xs text-gray-500">
+              core.users, core.tenants vs.
+            </div>
+          </div>
         </div>
 
         {/* Quick Actions */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Hızlı İşlemler</h3>
-          <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="grid md:grid-cols-2 lg:grid-cols-6 gap-4">
             <button
               onClick={() => navigate('/database/users')}
               className="flex items-center justify-center px-4 py-3 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
@@ -244,6 +263,14 @@ const AdminPage = () => {
             >
               <Megaphone size={20} className="mr-2" />
               Reklam Yönetimi
+            </button>
+            {/* NEW: Backend Tables Quick Action */}
+            <button
+              onClick={() => navigate('/backend-tables')}
+              className="flex items-center justify-center px-4 py-3 bg-cyan-100 text-cyan-700 rounded-lg hover:bg-cyan-200 transition-colors"
+            >
+              <Server size={20} className="mr-2" />
+              Backend Tabloları
             </button>
           </div>
         </div>
