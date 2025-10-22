@@ -66,7 +66,8 @@ const BackendTablesPage = () => {
     setTablesError(null);
     try {
       const API_URL = import.meta.env.VITE_API_URL || '/api/v1';
-      const response = await fetch(`${API_URL}/debug/tables-detailed`);
+      // 🎯 MASTER ADMIN ENDPOINT - Tek endpoint, tüm işlemler!
+      const response = await fetch(`${API_URL}/admin/database?type=tables&include=columns,indexes,rls,fk`);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch tables: ${response.statusText}`);
@@ -100,7 +101,8 @@ const BackendTablesPage = () => {
     setDataError(null);
     try {
       const API_URL = import.meta.env.VITE_API_URL || '/api/v1';
-      const response = await fetch(`${API_URL}/debug/table/${schema}/${table}/data?limit=100`);
+      // 🎯 MASTER ADMIN ENDPOINT - Single table with data
+      const response = await fetch(`${API_URL}/admin/database?type=table&schema=${schema}&table=${table}&include=data&limit=100`);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch data: ${response.statusText}`);
