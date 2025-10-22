@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDatabase } from '../context/DatabaseContext';
-import { Database, LogOut, User, Plus, Eye, Settings, Shield } from 'lucide-react';
+import { Database, LogOut, User, Plus, Eye, Settings, Shield, Server } from 'lucide-react';
 
 const DashboardPage = () => {
   const { state, logout } = useDatabase();
@@ -164,13 +164,22 @@ const DashboardPage = () => {
               </button>
             )}
             {state.user?.isAdmin && (
-              <button
-                onClick={() => navigate('/admin')}
-                className="flex items-center px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-              >
-                <Shield size={20} className="mr-2" />
-                Admin Paneli
-              </button>
+              <>
+                <button
+                  onClick={() => navigate('/admin')}
+                  className="flex items-center px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  <Shield size={20} className="mr-2" />
+                  Admin Paneli
+                </button>
+                <button
+                  onClick={() => navigate('/backend-tables')}
+                  className="flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                >
+                  <Server size={20} className="mr-2" />
+                  Backend Tabloları
+                </button>
+              </>
             )}
           </div>
         </div>
