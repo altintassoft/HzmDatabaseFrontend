@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useDatabase } from '../context/DatabaseContext';
 import { Database, LogIn, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import apiService from '../services/api';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { login } = useDatabase();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -20,11 +19,11 @@ const LoginPage = () => {
     setIsLoading(true);
 
     try {
-      const success = await login(formData.email, formData.password);
-      if (success) {
+      const response = await apiService.login(formData);
+      if (response.success) {
         navigate('/dashboard');
       } else {
-        setError('E-posta veya şifre hatalı');
+        setError(response.error || 'E-posta veya şifre hatalı');
       }
     } catch (err) {
       setError('Giriş yapılırken bir hata oluştu');
