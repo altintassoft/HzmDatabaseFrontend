@@ -83,7 +83,16 @@ const BackendTablesPage = () => {
         fullData: data
       });
       
-      setAllTables(data.tables || []);
+      // 🐛 FIX: indexes ve foreignKeys array'lerini sayıya çevir
+      const processedTables = (data.tables || []).map(table => ({
+        ...table,
+        indexes: Array.isArray(table.indexes) ? table.indexes.length : table.indexes || 0,
+        foreignKeys: Array.isArray(table.foreignKeys) ? table.foreignKeys.length : table.foreignKeys || 0,
+        foreignKeyCount: Array.isArray(table.foreignKeys) ? table.foreignKeys.length : table.foreignKeyCount || 0,
+        indexCount: Array.isArray(table.indexes) ? table.indexes.length : table.indexCount || 0
+      }));
+      
+      setAllTables(processedTables);
     } catch (error) {
       console.error('Error fetching tables:', error);
       setTablesError(error instanceof Error ? error.message : 'Unknown error');
