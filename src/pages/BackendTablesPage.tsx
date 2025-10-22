@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, ChevronDown, ChevronUp, Database, Filter, X, Eye, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Search, ChevronDown, ChevronUp, Database, Filter, X, Eye, RefreshCw, Copy, Check } from 'lucide-react';
 
 // Table metadata from TABLOLAR.md
 interface TableColumn {
@@ -123,6 +123,9 @@ const BackendTablesPage = () => {
   const [tableData, setTableData] = useState<TableData | null>(null);
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [dataError, setDataError] = useState<string | null>(null);
+  
+  // Copy state
+  const [copiedTable, setCopiedTable] = useState<string | null>(null);
 
   // Filter tables
   const filteredTables = BACKEND_TABLES.filter(table => {
@@ -173,27 +176,126 @@ const BackendTablesPage = () => {
     setDataError(null);
   };
 
+  // Copy table info to clipboard
+  const copyTableInfo = async (table: TableInfo) => {
+    let text = `=== ${table.fullName} ===\n`;
+    text += `${table.description || ''}\n\n`;
+    
+    if (table.status === 'active') {
+      text += `KOLONLAR (${table.columnCount}):\n`;
+      table.columns.forEach((col, idx) => {
+        text += `${idx + 1}. ${col.name} (${col.type})`;
+        if (col.constraint) text += ` - ${col.constraint}`;
+        if (col.default) text += ` [default: ${col.default}]`;
+        text += '\n';
+      });
+      
+      text += `\nİSTATİSTİKLER:\n`;
+      text += `- İndexler: ${table.indexes}\n`;
+      text += `- Foreign Keys: ${table.foreignKeys}\n`;
+      text += `- RLS: ${table.rls ? '✅ Aktif' : '❌ Pasif'}\n`;
+      text += `- Durum: ✅ Oluştu\n`;
+    } else {
+      text += `DURUM: ⏳ Bekliyor (${table.description})\n`;
+    }
+    
+    text += `\n${'='.repeat(50)}\n\n`;
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedTable(table.fullName);
+      setTimeout(() => setCopiedTable(null), 2000);
+    } catch (error) {
+      console.error('Failed to copy:', error);
+      alert('Kopyalama başarısız oldu!');
+    }
+  };
+
+  // Copy all tables info
+  const copyAllTables = async () => {
+    let text = `📋 HZM VERİ TABANI - TABLO ENVANTERİ\n`;
+    text += `Tarih: ${new Date().toLocaleString('tr-TR')}\n`;
+    text += `${'='.repeat(60)}\n\n`;
+
+    filteredTables.forEach((table) => {
+      text += `=== ${table.fullName} ===\n`;
+      text += `${table.description || ''}\n\n`;
+      
+      if (table.status === 'active') {
+        text += `KOLONLAR (${table.columnCount}):\n`;
+        table.columns.forEach((col, idx) => {
+          text += `${idx + 1}. ${col.name} (${col.type})`;
+          if (col.constraint) text += ` - ${col.constraint}`;
+          if (col.default) text += ` [default: ${col.default}]`;
+          text += '\n';
+        });
+        
+        text += `\nİSTATİSTİKLER:\n`;
+        text += `- İndexler: ${table.indexes}\n`;
+        text += `- Foreign Keys: ${table.foreignKeys}\n`;
+        text += `- RLS: ${table.rls ? '✅ Aktif' : '❌ Pasif'}\n`;
+        text += `- Durum: ✅ Oluştu\n`;
+      } else {
+        text += `DURUM: ⏳ Bekliyor (${table.description})\n`;
+      }
+      
+      text += `\n${'='.repeat(60)}\n\n`;
+    });
+
+    text += `\nTOPLAM TABLO SAYISI: ${filteredTables.length}\n`;
+    text += `AKTİF TABLO: ${filteredTables.filter(t => t.status === 'active').length}\n`;
+    text += `BEKLİYOR: ${filteredTables.filter(t => t.status === 'pending').length}\n`;
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedTable('all');
+      setTimeout(() => setCopiedTable(null), 2000);
+    } catch (error) {
+      console.error('Failed to copy:', error);
+      alert('Kopyalama başarısız oldu!');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
       <header className="bg-white shadow-sm border-b sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => navigate('/dashboard')}
-                className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <ArrowLeft size={20} className="mr-2" />
-                Geri
-              </button>
-              <div className="flex items-center space-x-3">
-                <Database className="text-blue-600" size={32} />
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-800">Backend Tabloları</h1>
-                  <p className="text-sm text-gray-600">Railway PostgreSQL Tablo Envanteri</p>
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={() => navigate('/dashboard')}
+                  className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <ArrowLeft size={20} className="mr-2" />
+                  Geri
+                </button>
+                <div className="flex items-center space-x-3">
+                  <Database className="text-blue-600" size={32} />
+                  <div>
+                    <h1 className="text-2xl font-bold text-gray-800">Backend Tabloları</h1>
+                    <p className="text-sm text-gray-600">Railway PostgreSQL Tablo Envanteri</p>
+                  </div>
                 </div>
               </div>
+              
+              <button
+                onClick={copyAllTables}
+                className="flex items-center px-4 py-2 bg-purple-600 text-white hover:bg-purple-700 rounded-lg transition-colors"
+              >
+                {copiedTable === 'all' ? (
+                  <>
+                    <Check size={20} className="mr-2" />
+                    Kopyalandı!
+                  </>
+                ) : (
+                  <>
+                    <Copy size={20} className="mr-2" />
+                    Tümünü Kopyala
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>
@@ -327,28 +429,55 @@ const BackendTablesPage = () => {
                     </div>
 
                     {/* Action */}
-                    <div className="col-span-1 text-center space-y-2">
-                      {table.status === 'active' && (
-                        <>
+                    <div className="col-span-1 text-center">
+                      <div className="flex items-center justify-center gap-1">
+                        {table.status === 'active' && (
+                          <>
+                            <button
+                              onClick={() => openDataModal(table.schema, table.name)}
+                              className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                              title="Verileri Görüntüle"
+                            >
+                              <Eye size={20} />
+                            </button>
+                            <button
+                              onClick={() => copyTableInfo(table)}
+                              className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors relative"
+                              title="Tablo Bilgilerini Kopyala"
+                            >
+                              {copiedTable === table.fullName ? (
+                                <Check size={20} className="text-green-600" />
+                              ) : (
+                                <Copy size={20} />
+                              )}
+                            </button>
+                            <button
+                              onClick={() => toggleExpand(table.fullName)}
+                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              title="Detayları Göster/Gizle"
+                            >
+                              {expandedTable === table.fullName ? (
+                                <ChevronUp size={20} />
+                              ) : (
+                                <ChevronDown size={20} />
+                              )}
+                            </button>
+                          </>
+                        )}
+                        {table.status === 'pending' && (
                           <button
-                            onClick={() => openDataModal(table.schema, table.name)}
-                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors inline-flex items-center"
-                            title="Verileri Görüntüle"
+                            onClick={() => copyTableInfo(table)}
+                            className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                            title="Tablo Bilgilerini Kopyala"
                           >
-                            <Eye size={20} />
-                          </button>
-                          <button
-                            onClick={() => toggleExpand(table.fullName)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors block mx-auto"
-                          >
-                            {expandedTable === table.fullName ? (
-                              <ChevronUp size={20} />
+                            {copiedTable === table.fullName ? (
+                              <Check size={20} className="text-green-600" />
                             ) : (
-                              <ChevronDown size={20} />
+                              <Copy size={20} />
                             )}
                           </button>
-                        </>
-                      )}
+                        )}
+                      </div>
                     </div>
                   </div>
 
