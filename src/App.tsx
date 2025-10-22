@@ -22,6 +22,7 @@ import DatabasePricing from './pages/DatabasePricing';
 import UpgradePlanPage from './pages/UpgradePlanPage';
 import BackendTablesPage from './pages/BackendTablesPage';
 import UserSettingsPage from './pages/UserSettingsPage';
+import SystemSettingsPage from './pages/SystemSettingsPage';
 // CIO Module Import
 import { CIODashboard } from './modules/cio';
 import './App.css';
@@ -122,6 +123,12 @@ function App() {
             <Route path="/backend-tables" element={
               <AdminRoute>
                 <BackendTablesPage />
+              </AdminRoute>
+            } />
+            
+            <Route path="/system-settings" element={
+              <AdminRoute>
+                <SystemSettingsPage />
               </AdminRoute>
             } />
             
