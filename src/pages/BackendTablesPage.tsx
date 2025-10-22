@@ -74,6 +74,15 @@ const BackendTablesPage = () => {
       }
       
       const data = await response.json();
+      
+      // 🐛 DEBUG: Response yapısını görelim
+      console.log('📋 TABLES RESPONSE:', {
+        hasTables: !!data.tables,
+        tableCount: data.tables?.length,
+        firstTable: data.tables?.[0],
+        fullData: data
+      });
+      
       setAllTables(data.tables || []);
     } catch (error) {
       console.error('Error fetching tables:', error);
@@ -109,6 +118,18 @@ const BackendTablesPage = () => {
       }
       
       const data = await response.json();
+      
+      // 🐛 DEBUG: Response yapısını görelim
+      console.log('📊 TABLE DATA RESPONSE:', {
+        schema,
+        table,
+        hasColumns: !!data.columns,
+        hasData: !!data.data,
+        columnsCount: data.columns?.length,
+        dataCount: data.data?.length,
+        fullData: data
+      });
+      
       setTableData(data);
     } catch (error) {
       console.error('Error fetching table data:', error);
