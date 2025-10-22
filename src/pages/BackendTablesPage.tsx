@@ -664,7 +664,7 @@ const BackendTablesPage = () => {
                     <p className="text-sm">{dataError}</p>
                   </div>
                 </div>
-              ) : tableData && tableData.data.length > 0 ? (
+              ) : tableData && tableData.columns && tableData.data && tableData.data.length > 0 ? (
                 <div className="overflow-x-auto">
                   <table className="w-full border-collapse border border-gray-300">
                     <thead>
@@ -701,10 +701,17 @@ const BackendTablesPage = () => {
                     </tbody>
                   </table>
                 </div>
-              ) : tableData && tableData.data.length === 0 ? (
+              ) : tableData && tableData.columns && tableData.data && tableData.data.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12">
                   <Database className="text-gray-400 mb-4" size={48} />
                   <p className="text-gray-600">Bu tabloda henüz veri yok</p>
+                </div>
+              ) : tableData ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <div className="text-orange-600 text-center">
+                    <p className="font-semibold mb-2">⚠️ Veri Formatı Hatası</p>
+                    <p className="text-sm">Tablo verisi yüklenemedi. Lütfen sayfayı yenileyin.</p>
+                  </div>
                 </div>
               ) : null}
             </div>
