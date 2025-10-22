@@ -1,0 +1,44 @@
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Animations */
+.panel-item {
+  transition: all 0.2s ease-in-out;
+}
+
+.panel-item:hover {
+  transform: translateY(-2px);
+}
+
+.panel-item.selected {
+  transform: translateY(0);
+}
+
+/* Panel scrolling */
+.panel-content {
+  max-height: calc(100vh - 230px);
+  overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+  .panel-content {
+    max-height: 300px;
+  }
+}
