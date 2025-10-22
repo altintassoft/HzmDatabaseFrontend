@@ -52,6 +52,13 @@ const DashboardPage = () => {
               )}
             </div>
             <button
+              onClick={() => navigate('/settings')}
+              className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Ayarlar"
+            >
+              <Settings size={20} />
+            </button>
+            <button
               onClick={handleLogout}
               className="flex items-center px-4 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
             >
@@ -152,6 +159,13 @@ const DashboardPage = () => {
             >
               <Eye size={20} className="mr-2" />
               Projeleri Görüntüle
+            </button>
+            <button
+              onClick={() => navigate('/settings')}
+              className="flex items-center px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              <Settings size={20} className="mr-2" />
+              Ayarlar
             </button>
             {/* Show upgrade button for all users except enterprise */}
             {state.user?.subscriptionType !== 'enterprise' && (

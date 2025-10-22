@@ -21,6 +21,7 @@ import DatabaseState from './pages/DatabaseState';
 import DatabasePricing from './pages/DatabasePricing';
 import UpgradePlanPage from './pages/UpgradePlanPage';
 import BackendTablesPage from './pages/BackendTablesPage';
+import UserSettingsPage from './pages/UserSettingsPage';
 // CIO Module Import
 import { CIODashboard } from './modules/cio';
 import './App.css';
@@ -102,6 +103,12 @@ function App() {
             <Route path="/upgrade" element={
               <ProtectedRoute>
                 <UpgradePlanPage />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/settings" element={
+              <ProtectedRoute>
+                <UserSettingsPage />
               </ProtectedRoute>
             } />
             
