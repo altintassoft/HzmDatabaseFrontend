@@ -18,6 +18,7 @@ import ConfirmModal from '../components/ConfirmModal';
 interface ApiKeyData {
   email: string;
   apiKey: string | null;
+  apiPassword: string | null;
   hasApiKey: boolean;
   createdAt: string | null;
   lastUsedAt: string | null;
@@ -28,10 +29,6 @@ const UserSettingsPage = () => {
   const [loading, setLoading] = useState(true);
   const [apiKeyData, setApiKeyData] = useState<ApiKeyData | null>(null);
   const [error, setError] = useState<string | null>(null);
-  
-  // New API credentials (shown once after generation)
-  const [newApiPassword, setNewApiPassword] = useState<string | null>(null);
-  const [showWarning, setShowWarning] = useState(false);
   
   // Copy states
   const [copiedKey, setCopiedKey] = useState(false);
@@ -161,10 +158,9 @@ const UserSettingsPage = () => {
       const result = await response.json();
       
       if (result.success) {
-        setNewApiPassword(result.data.apiPassword);
-        setShowWarning(true);
         setShowRegeneratePasswordModal(false);
         await fetchApiKeyData();
+        // Password artık sayfada görünecek, modal'a gerek yok
       } else {
         setError(result.error);
       }
@@ -188,8 +184,6 @@ const UserSettingsPage = () => {
       const result = await response.json();
       
       if (result.success) {
-        setNewApiPassword(null);
-        setShowWarning(false);
         setShowRevokeModal(false);
         await fetchApiKeyData();
       } else {
@@ -259,52 +253,6 @@ const UserSettingsPage = () => {
           </div>
         )}
 
-        {/* Modal for new password (shown when password regenerated) */}
-        {showWarning && newApiPassword && (
-          <ConfirmModal
-            isOpen={true}
-            onClose={() => {
-              setShowWarning(false);
-              setNewApiPassword(null);
-            }}
-            onConfirm={() => {
-              setShowWarning(false);
-              setNewApiPassword(null);
-            }}
-            title="Yeni API Şifreniz"
-            message=""
-            confirmText="Kaydettim, Kapat"
-            type="warning"
-          >
-            <div className="my-4">
-              <p className="text-yellow-800 mb-3 text-sm">
-                ⚠️ Bu şifre sadece bir kez gösterilir! Lütfen güvenli bir yere kaydedin.
-              </p>
-              <div className="bg-white border-2 border-yellow-300 rounded p-3 font-mono text-sm">
-                <div className="flex items-center justify-between">
-                  <span className={showApiPassword ? '' : 'blur-sm select-none'}>
-                    {newApiPassword}
-                  </span>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setShowApiPassword(!showApiPassword)}
-                      className="p-1.5 hover:bg-yellow-100 rounded"
-                    >
-                      {showApiPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
-                    <button
-                      onClick={() => copyToClipboard(newApiPassword, 'password')}
-                      className="p-1.5 hover:bg-yellow-100 rounded"
-                    >
-                      {copiedPassword ? <Check size={16} className="text-green-600" /> : <Copy size={16} />}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </ConfirmModal>
-        )}
-
         {/* Compact API Settings Card */}
         <div className="bg-white rounded-lg shadow-md p-5">
           {/* Email Section */}
@@ -367,17 +315,35 @@ const UserSettingsPage = () => {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-sm font-semibold text-gray-700">API Password</label>
-                  <button
-                    onClick={() => setShowRegeneratePasswordModal(true)}
-                    disabled={regeneratingPassword}
-                    className="p-1.5 hover:bg-orange-100 rounded text-orange-600 disabled:opacity-50"
-                    title="Yenile"
-                  >
-                    <RefreshCw size={16} className={regeneratingPassword ? 'animate-spin' : ''} />
-                  </button>
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => setShowApiPassword(!showApiPassword)}
+                      className="p-1.5 hover:bg-gray-100 rounded text-gray-600"
+                      title={showApiPassword ? 'Gizle' : 'Göster'}
+                    >
+                      {showApiPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                    <button
+                      onClick={() => copyToClipboard(apiKeyData.apiPassword!, 'password')}
+                      className="p-1.5 hover:bg-gray-100 rounded text-gray-600"
+                      title="Kopyala"
+                    >
+                      {copiedPassword ? <Check size={16} className="text-green-600" /> : <Copy size={16} />}
+                    </button>
+                    <button
+                      onClick={() => setShowRegeneratePasswordModal(true)}
+                      disabled={regeneratingPassword}
+                      className="p-1.5 hover:bg-orange-100 rounded text-orange-600 disabled:opacity-50"
+                      title="Yenile"
+                    >
+                      <RefreshCw size={16} className={regeneratingPassword ? 'animate-spin' : ''} />
+                    </button>
+                  </div>
                 </div>
-                <div className="bg-gray-50 border border-gray-300 rounded p-2 text-xs text-gray-600">
-                  🔒 Güvenli saklanıyor
+                <div className="bg-gray-50 border border-gray-300 rounded p-2 font-mono text-xs">
+                  <span className={showApiPassword ? '' : 'blur-sm select-none'}>
+                    {apiKeyData.apiPassword}
+                  </span>
                 </div>
               </div>
 
@@ -431,7 +397,7 @@ const UserSettingsPage = () => {
         onClose={() => setShowRegeneratePasswordModal(false)}
         onConfirm={handleRegeneratePassword}
         title="API Password Yenile"
-        message="API Password yenilenecek, ancak API Key aynı kalacak. Eski şifre artık çalışmayacak. Yeni şifre sadece bir kez gösterilecek! Devam etmek istiyor musunuz?"
+        message="API Password yenilenecek, ancak API Key aynı kalacak. Eski şifre artık çalışmayacak. Devam etmek istiyor musunuz?"
         confirmText="Evet, Yenile"
         cancelText="İptal"
         type="warning"
