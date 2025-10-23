@@ -143,11 +143,17 @@ const BackendMigrationsTab = () => {
     );
   }
 
-  if (!reportData) {
+  if (!reportData || !reportData.summary) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <Database className="text-gray-400 mb-4" size={48} />
-        <p className="text-gray-600">Rapor bulunamadı</p>
+        <p className="text-gray-600">Rapor verisi eksik veya hatalı</p>
+        <button
+          onClick={fetchMigrationReport}
+          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          Tekrar Yükle
+        </button>
       </div>
     );
   }
@@ -170,19 +176,19 @@ const BackendMigrationsTab = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
           <div className="text-sm text-gray-600 mb-1">Toplam Migration</div>
-          <div className="text-2xl font-bold text-gray-900">{reportData.summary.totalMigrations}</div>
+          <div className="text-2xl font-bold text-gray-900">{reportData.summary?.totalMigrations || 0}</div>
         </div>
         <div className="bg-green-50 rounded-lg shadow-sm p-4 border border-green-200">
           <div className="text-sm text-green-700 mb-1">Başarılı</div>
-          <div className="text-2xl font-bold text-green-900">{reportData.summary.successCount}</div>
+          <div className="text-2xl font-bold text-green-900">{reportData.summary?.successCount || 0}</div>
         </div>
         <div className="bg-yellow-50 rounded-lg shadow-sm p-4 border border-yellow-200">
           <div className="text-sm text-yellow-700 mb-1">Uyarı</div>
-          <div className="text-2xl font-bold text-yellow-900">{reportData.summary.warningCount}</div>
+          <div className="text-2xl font-bold text-yellow-900">{reportData.summary?.warningCount || 0}</div>
         </div>
         <div className="bg-red-50 rounded-lg shadow-sm p-4 border border-red-200">
           <div className="text-sm text-red-700 mb-1">Hata</div>
-          <div className="text-2xl font-bold text-red-900">{reportData.summary.errorCount}</div>
+          <div className="text-2xl font-bold text-red-900">{reportData.summary?.errorCount || 0}</div>
         </div>
       </div>
 
@@ -194,7 +200,7 @@ const BackendMigrationsTab = () => {
         </div>
 
         <div className="divide-y divide-gray-200">
-          {reportData.migrations.map((migration) => (
+          {reportData.migrations && reportData.migrations.length > 0 ? reportData.migrations.map((migration) => (
             <div key={migration.filename} className="hover:bg-gray-50 transition-colors">
               {/* Migration Header */}
               <div className="px-6 py-4">
@@ -327,7 +333,11 @@ const BackendMigrationsTab = () => {
                 </div>
               )}
             </div>
-          ))}
+          )) : (
+            <div className="px-6 py-8 text-center text-gray-500">
+              <p>Migration bulunamadı</p>
+            </div>
+          )}
         </div>
       </div>
 
