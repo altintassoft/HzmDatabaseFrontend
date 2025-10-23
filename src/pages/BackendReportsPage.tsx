@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Database, FileText } from 'lucide-react';
+import { ArrowLeft, Database, FileText, Activity } from 'lucide-react';
 import BackendTablesTab from './BackendTablesTab';
 import BackendMigrationsTab from './BackendMigrationsTab';
+import ArchitectureHealthTab from './ArchitectureHealthTab';
 
-type TabType = 'tables' | 'migrations';
+type TabType = 'tables' | 'migrations' | 'architecture';
 
 const BackendReportsPage = () => {
   const navigate = useNavigate();
@@ -60,12 +61,25 @@ const BackendReportsPage = () => {
               <FileText size={20} />
               <span>Migration Raporu</span>
             </button>
+
+            <button
+              onClick={() => setActiveTab('architecture')}
+              className={`flex items-center gap-2 px-6 py-4 font-medium transition-all ${
+                activeTab === 'architecture'
+                  ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              <Activity size={20} />
+              <span>🏗️ Mimari Sağlık</span>
+            </button>
           </div>
 
           {/* Tab Content */}
           <div className="p-6">
             {activeTab === 'tables' && <BackendTablesTab />}
             {activeTab === 'migrations' && <BackendMigrationsTab />}
+            {activeTab === 'architecture' && <ArchitectureHealthTab />}
           </div>
         </div>
       </div>
