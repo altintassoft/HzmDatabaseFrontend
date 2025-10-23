@@ -14,8 +14,8 @@ const BackendReportsPage = () => {
 
   // Get user role from session storage (JWT token)
   useEffect(() => {
-    const token = sessionStorage.getItem('token');
-    console.log('🔍 Token:', token ? 'Var' : 'Yok');
+    const token = sessionStorage.getItem('auth_token'); // ✅ FIXED: was 'token', should be 'auth_token'
+    console.log('🔍 Token:', token ? 'Var (auth_token)' : 'Yok');
     
     if (token) {
       try {
@@ -29,7 +29,7 @@ const BackendReportsPage = () => {
         setUserRole('user');
       }
     } else {
-      console.warn('⚠️  Token not found in sessionStorage');
+      console.warn('⚠️  Token not found in sessionStorage (looking for auth_token)');
       setUserRole('user');
     }
     
