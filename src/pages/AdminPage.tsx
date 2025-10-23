@@ -205,15 +205,15 @@ const AdminPage = () => {
             </div>
           </div>
 
-          {/* NEW: Backend Tables Card */}
+          {/* NEW: Backend Reports Card */}
           <div 
-            onClick={() => navigate('/backend-tables')}
+            onClick={() => navigate('/backend-reports')}
             className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-all cursor-pointer border-l-4 border-cyan-500"
           >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center">
                 <Server className="text-cyan-600 mr-3" size={24} />
-                <h3 className="text-lg font-semibold text-gray-800">Backend Tabloları</h3>
+                <h3 className="text-lg font-semibold text-gray-800">Backend Raporları</h3>
               </div>
               <div className="text-2xl font-bold text-cyan-600">🗄️</div>
             </div>
@@ -264,13 +264,13 @@ const AdminPage = () => {
               <Megaphone size={20} className="mr-2" />
               Reklam Yönetimi
             </button>
-            {/* NEW: Backend Tables Quick Action */}
+            {/* NEW: Backend Reports Quick Action */}
             <button
-              onClick={() => navigate('/backend-tables')}
+              onClick={() => navigate('/backend-reports')}
               className="flex items-center justify-center px-4 py-3 bg-cyan-100 text-cyan-700 rounded-lg hover:bg-cyan-200 transition-colors"
             >
               <Server size={20} className="mr-2" />
-              Backend Tabloları
+              Backend Raporları
             </button>
           </div>
         </div>

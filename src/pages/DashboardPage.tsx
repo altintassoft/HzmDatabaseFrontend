@@ -187,11 +187,11 @@ const DashboardPage = () => {
                   Admin Paneli
                 </button>
                 <button
-                  onClick={() => navigate('/backend-tables')}
+                  onClick={() => navigate('/backend-reports')}
                   className="flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
                 >
                   <Server size={20} className="mr-2" />
-                  Backend Tabloları
+                  Backend Raporları
                 </button>
               </>
             )}

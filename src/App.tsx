@@ -20,7 +20,7 @@ import DatabaseProjects from './pages/DatabaseProjects';
 import DatabaseState from './pages/DatabaseState';
 import DatabasePricing from './pages/DatabasePricing';
 import UpgradePlanPage from './pages/UpgradePlanPage';
-import BackendTablesPage from './pages/BackendTablesPage';
+import BackendReportsPage from './pages/BackendReportsPage';
 import UserSettingsPage from './pages/UserSettingsPage';
 import SystemSettingsPage from './pages/SystemSettingsPage';
 // CIO Module Import
@@ -120,9 +120,9 @@ function App() {
               </AdminRoute>
             } />
             
-            <Route path="/backend-tables" element={
+            <Route path="/backend-reports" element={
               <AdminRoute>
-                <BackendTablesPage />
+                <BackendReportsPage />
               </AdminRoute>
             } />
             
