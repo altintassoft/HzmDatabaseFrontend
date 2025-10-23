@@ -15,16 +15,25 @@ const BackendReportsPage = () => {
   // Get user role from session storage (JWT token)
   useEffect(() => {
     const token = sessionStorage.getItem('token');
+    console.log('🔍 Token:', token ? 'Var' : 'Yok');
+    
     if (token) {
       try {
         // JWT token format: header.payload.signature
         const payload = JSON.parse(atob(token.split('.')[1]));
+        console.log('🎫 JWT Payload:', payload);
+        console.log('👤 User Role:', payload.role);
         setUserRole(payload.role || 'user');
       } catch (error) {
-        console.error('Failed to parse token:', error);
+        console.error('❌ Failed to parse token:', error);
         setUserRole('user');
       }
+    } else {
+      console.warn('⚠️  Token not found in sessionStorage');
+      setUserRole('user');
     }
+    
+    console.log('✅ User Role Set:', userRole);
   }, []);
 
   // 🔒 ROLE-BASED TAB VISIBILITY: Migration ve Architecture tab'ları sadece admin ve master_admin için
