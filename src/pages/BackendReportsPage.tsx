@@ -39,6 +39,10 @@ const BackendReportsPage = () => {
   // 🔒 ROLE-BASED TAB VISIBILITY: Migration ve Architecture tab'ları sadece admin ve master_admin için
   const showMigrationTab = ['admin', 'master_admin'].includes(userRole);
   const showArchitectureTab = ['admin', 'master_admin'].includes(userRole);
+  
+  console.log('🎭 Current User Role:', userRole);
+  console.log('📊 Show Migration Tab:', showMigrationTab);
+  console.log('🏗️  Show Architecture Tab:', showArchitectureTab);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8">
