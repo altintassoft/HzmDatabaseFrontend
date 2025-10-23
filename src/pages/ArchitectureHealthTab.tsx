@@ -14,6 +14,7 @@ import {
   Layers,
   Activity
 } from 'lucide-react';
+import api from '../services/api';
 
 interface CategoryScore {
   score: number;
@@ -73,14 +74,7 @@ const ArchitectureHealthTab: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const API_URL = import.meta.env.VITE_API_URL || '/api/v1';
-      const response = await fetch(`${API_URL}/admin/database?type=architecture-compliance`);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
+      const data = await api.get('/admin/database?type=architecture-compliance');
       setReportData(data);
       setLastUpdated(new Date());
     } catch (err: any) {

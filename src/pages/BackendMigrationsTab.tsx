@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { RefreshCw, AlertCircle, CheckCircle, XCircle, ChevronDown, ChevronUp, Database } from 'lucide-react';
+import api from '../services/api';
 
 interface MigrationReport {
   filename: string;
@@ -70,14 +71,7 @@ const BackendMigrationsTab = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const API_URL = import.meta.env.VITE_API_URL || '/api/v1';
-      const response = await fetch(`${API_URL}/admin/database?type=migration-report&include=data`);
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch migration report: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
+      const data = await api.get('/admin/database?type=migration-report&include=data');
       
       console.log('📊 MIGRATION REPORT:', data);
       

@@ -131,6 +131,27 @@ class ApiService {
   getToken(): string | null {
     return this.token;
   }
+
+  // Generic GET method for authenticated requests
+  async get(endpoint: string): Promise<any> {
+    try {
+      const response = await fetch(`${API_URL}${endpoint}`, {
+        method: 'GET',
+        headers: this.getHeaders(),
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('API GET error:', error);
+      throw error;
+    }
+  }
 }
 
 export const apiService = new ApiService();
