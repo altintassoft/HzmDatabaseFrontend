@@ -631,7 +631,7 @@ const BackendTablesTab = () => {
             </div>
           </div>
         </div>
-      </main>
+      </div>
 
       {/* Data Modal */}
       {showDataModal && (
