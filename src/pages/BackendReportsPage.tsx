@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Database, FileText, Activity, GitCompare } from 'lucide-react';
+import { ArrowLeft, Database, FileText, Activity, GitCompare, CheckCircle } from 'lucide-react';
 import BackendTablesTab from './BackendTablesTab';
 import BackendMigrationsTab from './BackendMigrationsTab';
 import ArchitectureHealthTab from './ArchitectureHealthTab';
 import TableComparisonTab from './TableComparisonTab';
+import EndpointComplianceTab from './EndpointComplianceTab';
 
-type TabType = 'tables' | 'migrations' | 'architecture' | 'comparison';
+type TabType = 'tables' | 'migrations' | 'architecture' | 'comparison' | 'compliance';
 
 const BackendReportsPage = () => {
   const navigate = useNavigate();
@@ -37,15 +38,17 @@ const BackendReportsPage = () => {
     console.log('✅ User Role Set:', userRole);
   }, []);
 
-  // 🔒 ROLE-BASED TAB VISIBILITY: Migration, Architecture, Comparison tab'ları sadece admin ve master_admin için
+  // 🔒 ROLE-BASED TAB VISIBILITY: Migration, Architecture, Comparison, Compliance tab'ları sadece admin ve master_admin için
   const showMigrationTab = ['admin', 'master_admin'].includes(userRole);
   const showArchitectureTab = ['admin', 'master_admin'].includes(userRole);
   const showComparisonTab = ['admin', 'master_admin'].includes(userRole);
+  const showComplianceTab = ['admin', 'master_admin'].includes(userRole);
   
   console.log('🎭 Current User Role:', userRole);
   console.log('📊 Show Migration Tab:', showMigrationTab);
   console.log('🏗️  Show Architecture Tab:', showArchitectureTab);
   console.log('📋 Show Comparison Tab:', showComparisonTab);
+  console.log('✅ Show Compliance Tab:', showComplianceTab);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8">
@@ -131,6 +134,21 @@ const BackendReportsPage = () => {
                 <span>📋 Tablo Karşılaştırma</span>
               </button>
             )}
+
+            {/* Endpoint Compliance - Sadece admin ve master_admin */}
+            {showComplianceTab && (
+              <button
+                onClick={() => setActiveTab('compliance')}
+                className={`flex items-center gap-2 px-6 py-4 font-medium transition-all ${
+                  activeTab === 'compliance'
+                    ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
+              >
+                <CheckCircle size={20} />
+                <span>📊 Endpoint Compliance</span>
+              </button>
+            )}
           </div>
 
           {/* Tab Content */}
@@ -139,6 +157,7 @@ const BackendReportsPage = () => {
             {activeTab === 'migrations' && showMigrationTab && <BackendMigrationsTab />}
             {activeTab === 'architecture' && showArchitectureTab && <ArchitectureHealthTab />}
             {activeTab === 'comparison' && showComparisonTab && <TableComparisonTab />}
+            {activeTab === 'compliance' && showComplianceTab && <EndpointComplianceTab />}
           </div>
         </div>
       </div>
