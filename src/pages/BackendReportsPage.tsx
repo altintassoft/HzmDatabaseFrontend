@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Database, FileText, Activity } from 'lucide-react';
+import { ArrowLeft, Database, FileText, Activity, GitCompare } from 'lucide-react';
 import BackendTablesTab from './BackendTablesTab';
 import BackendMigrationsTab from './BackendMigrationsTab';
 import ArchitectureHealthTab from './ArchitectureHealthTab';
+import TableComparisonTab from './TableComparisonTab';
 
-type TabType = 'tables' | 'migrations' | 'architecture';
+type TabType = 'tables' | 'migrations' | 'architecture' | 'comparison';
 
 const BackendReportsPage = () => {
   const navigate = useNavigate();
@@ -36,13 +37,15 @@ const BackendReportsPage = () => {
     console.log('✅ User Role Set:', userRole);
   }, []);
 
-  // 🔒 ROLE-BASED TAB VISIBILITY: Migration ve Architecture tab'ları sadece admin ve master_admin için
+  // 🔒 ROLE-BASED TAB VISIBILITY: Migration, Architecture, Comparison tab'ları sadece admin ve master_admin için
   const showMigrationTab = ['admin', 'master_admin'].includes(userRole);
   const showArchitectureTab = ['admin', 'master_admin'].includes(userRole);
+  const showComparisonTab = ['admin', 'master_admin'].includes(userRole);
   
   console.log('🎭 Current User Role:', userRole);
   console.log('📊 Show Migration Tab:', showMigrationTab);
   console.log('🏗️  Show Architecture Tab:', showArchitectureTab);
+  console.log('📋 Show Comparison Tab:', showComparisonTab);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8">
@@ -113,6 +116,21 @@ const BackendReportsPage = () => {
                 <span>🏗️ Mimari Sağlık</span>
               </button>
             )}
+
+            {/* Tablo Karşılaştırma - Sadece admin ve master_admin */}
+            {showComparisonTab && (
+              <button
+                onClick={() => setActiveTab('comparison')}
+                className={`flex items-center gap-2 px-6 py-4 font-medium transition-all ${
+                  activeTab === 'comparison'
+                    ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
+              >
+                <GitCompare size={20} />
+                <span>📋 Tablo Karşılaştırma</span>
+              </button>
+            )}
           </div>
 
           {/* Tab Content */}
@@ -120,6 +138,7 @@ const BackendReportsPage = () => {
             {activeTab === 'tables' && <BackendTablesTab />}
             {activeTab === 'migrations' && showMigrationTab && <BackendMigrationsTab />}
             {activeTab === 'architecture' && showArchitectureTab && <ArchitectureHealthTab />}
+            {activeTab === 'comparison' && showComparisonTab && <TableComparisonTab />}
           </div>
         </div>
       </div>
