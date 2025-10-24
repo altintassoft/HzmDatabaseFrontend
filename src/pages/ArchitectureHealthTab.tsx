@@ -5,26 +5,40 @@ import {
   XCircle, 
   AlertTriangle,
   RefreshCw,
-  TrendingUp,
-  TrendingDown,
-  Minus,
   Database,
   Globe,
   Shield,
   Layers,
-  Activity
+  Activity,
+  TrendingUp,
+  Filter,
+  Search
 } from 'lucide-react';
 import api from '../services/api';
 
-interface CategoryScore {
-  score: number;
-  status: 'excellent' | 'good' | 'fair' | 'poor';
-  details?: {
-    [key: string]: {
-      percentage: number;
-      label: string;
-    };
-  };
+interface AuthUsageEndpoint {
+  endpoint: string;
+  method: string;
+  current_auth: string;
+  expected_auth: string;
+  status: 'correct' | 'wrong' | 'missing';
+}
+
+interface ApiKeyFeature {
+  feature: string;
+  status: 'implemented' | 'warning' | 'missing';
+  table: string;
+  column: string;
+  notes: string;
+}
+
+interface PriorityAction {
+  priority: string;
+  title: string;
+  description: string;
+  phase: string;
+  status: string;
+  impact: string;
 }
 
 interface ArchitectureReport {
@@ -37,31 +51,17 @@ interface ArchitectureReport {
     rls_multi_tenancy: number;
     best_practices: number;
   };
-  database_analysis: {
-    tables: { expected: number; actual: number; missing: number };
-    columns: { mismatches: any[] };
-    seed_data: { missing: any[] };
-  };
-  endpoint_analysis: {
-    total: number;
-    target: number;
-    extra: any[];
-    missing: any[];
-  };
-  api_key_architecture: {
-    format_compliance: number;
-    features: {
-      [key: string]: boolean;
+  authentication_usage: {
+    endpoints: AuthUsageEndpoint[];
+    stats: {
+      total: number;
+      correct: number;
+      wrong: number;
+      missing: number;
     };
   };
-  security_checklist: {
-    [key: string]: boolean;
-  };
-  action_plan: {
-    p0_critical: any[];
-    p1_high: any[];
-    p2_medium: any[];
-  };
+  api_key_implementation: ApiKeyFeature[];
+  priority_actions: PriorityAction[];
 }
 
 const ArchitectureHealthTab: React.FC = () => {
@@ -69,6 +69,12 @@ const ArchitectureHealthTab: React.FC = () => {
   const [reportData, setReportData] = useState<ArchitectureReport | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  
+  // Filters
+  const [authFilter, setAuthFilter] = useState<string>('all');
+  const [apiKeyFilter, setApiKeyFilter] = useState<string>('all');
+  const [actionFilter, setActionFilter] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
   const fetchArchitectureReport = async () => {
     setLoading(true);
@@ -103,44 +109,95 @@ const ArchitectureHealthTab: React.FC = () => {
     return 'bg-red-50 border-red-200';
   };
 
-  const getScoreIcon = (score: number) => {
-    if (score >= 85) return <CheckCircle className="text-green-600" size={24} />;
-    if (score >= 70) return <AlertTriangle className="text-yellow-600" size={24} />;
-    return <XCircle className="text-red-600" size={24} />;
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'correct':
+      case 'implemented':
+      case 'done':
+        return <CheckCircle className="text-green-600" size={18} />;
+      case 'warning':
+      case 'pending':
+        return <AlertTriangle className="text-yellow-600" size={18} />;
+      case 'wrong':
+      case 'missing':
+        return <XCircle className="text-red-600" size={18} />;
+      default:
+        return <AlertCircle className="text-gray-400" size={18} />;
+    }
   };
 
-  const getScoreLabel = (score: number) => {
-    if (score >= 85) return 'Excellent';
-    if (score >= 70) return 'Good';
-    if (score >= 50) return 'Fair';
-    return 'Poor';
+  const getStatusBadge = (status: string) => {
+    const baseClass = "px-2 py-1 rounded text-xs font-medium";
+    switch (status) {
+      case 'correct':
+      case 'implemented':
+      case 'done':
+        return `${baseClass} bg-green-100 text-green-700`;
+      case 'warning':
+      case 'pending':
+        return `${baseClass} bg-yellow-100 text-yellow-700`;
+      case 'wrong':
+      case 'missing':
+        return `${baseClass} bg-red-100 text-red-700`;
+      default:
+        return `${baseClass} bg-gray-100 text-gray-700`;
+    }
   };
 
-  const getStatusIcon = (status: boolean) => {
-    return status ? (
-      <CheckCircle className="text-green-600" size={16} />
-    ) : (
-      <XCircle className="text-red-600" size={16} />
-    );
+  const getPriorityBadge = (priority: string) => {
+    const baseClass = "px-2 py-1 rounded text-xs font-bold";
+    switch (priority.toLowerCase()) {
+      case 'p0':
+        return `${baseClass} bg-red-600 text-white`;
+      case 'p1':
+        return `${baseClass} bg-orange-600 text-white`;
+      case 'p2':
+        return `${baseClass} bg-yellow-600 text-white`;
+      case 'p3':
+        return `${baseClass} bg-blue-600 text-white`;
+      default:
+        return `${baseClass} bg-gray-600 text-white`;
+    }
   };
+
+  // Filter data
+  const filteredAuthEndpoints = reportData?.authentication_usage.endpoints.filter(ep => {
+    if (authFilter !== 'all' && ep.status !== authFilter) return false;
+    if (searchTerm && !ep.endpoint.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+    return true;
+  }) || [];
+
+  const filteredApiKeyFeatures = reportData?.api_key_implementation.filter(feat => {
+    if (apiKeyFilter !== 'all' && feat.status !== apiKeyFilter) return false;
+    if (searchTerm && !feat.feature.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+    return true;
+  }) || [];
+
+  const filteredActions = reportData?.priority_actions.filter(action => {
+    if (actionFilter !== 'all' && action.priority.toLowerCase() !== actionFilter) return false;
+    if (searchTerm && !action.title.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+    return true;
+  }) || [];
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-12">
-        <RefreshCw className="animate-spin text-blue-600 mb-4" size={48} />
-        <p className="text-gray-600">Mimari sağlık raporu yükleniyor...</p>
+      <div className="flex items-center justify-center h-64">
+        <RefreshCw className="animate-spin text-blue-600" size={40} />
+        <span className="ml-3 text-lg text-gray-600">Mimari analiz yapılıyor...</span>
       </div>
     );
   }
 
-  if (error || !reportData) {
+  if (error) {
     return (
-      <div className="flex flex-col items-center justify-center py-12">
-        <AlertCircle className="text-red-600 mb-4" size={48} />
-        <p className="text-gray-600 mb-4">{error || 'Rapor verisi yüklenemedi'}</p>
+      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+        <div className="flex items-center">
+          <AlertCircle className="text-red-600" size={24} />
+          <span className="ml-3 text-red-800 font-medium">Hata: {error}</span>
+        </div>
         <button
           onClick={fetchArchitectureReport}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
         >
           Tekrar Dene
         </button>
@@ -148,355 +205,337 @@ const ArchitectureHealthTab: React.FC = () => {
     );
   }
 
+  if (!reportData) {
+    return (
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+        <span className="text-gray-600">Rapor verisi bulunamadı</span>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      {/* Header with Refresh */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Mimari Sağlık Raporu</h2>
-          <p className="text-sm text-gray-500 mt-1">
-            Backend'in SMART_ENDPOINT_STRATEGY_V2 ve BACKEND_PHASE_PLAN'e uyumluluğu
-          </p>
-          {lastUpdated && (
-            <p className="text-xs text-gray-400 mt-1">
-              Son güncelleme: {lastUpdated.toLocaleString('tr-TR')}
-            </p>
-          )}
-        </div>
-        <button
-          onClick={fetchArchitectureReport}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          <RefreshCw size={16} />
-          Yenile
-        </button>
-      </div>
-
-      {/* Section 1: Overall Score */}
-      <div className={`p-6 rounded-lg border-2 ${getScoreBgColor(reportData.overall_score)}`}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            {getScoreIcon(reportData.overall_score)}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">Genel Mimari Skor</h3>
-              <p className="text-sm text-gray-600">
-                {getScoreLabel(reportData.overall_score)} - Backend {reportData.overall_score >= 85 ? 'mükemmel' : reportData.overall_score >= 70 ? 'iyi' : 'iyileştirme gerekli'}
-              </p>
-            </div>
-          </div>
-          <div className={`text-5xl font-bold ${getScoreColor(reportData.overall_score)}`}>
-            {reportData.overall_score}/100
-          </div>
-        </div>
-      </div>
-
-      {/* Section 2: Category Scores */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <Layers size={24} className="text-blue-600" />
-          Kategori Skorları
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {/* Database Schema */}
-          <div className={`p-4 rounded-lg border ${getScoreBgColor(reportData.category_scores.database_schema)}`}>
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <Database size={20} />
-                <span className="font-semibold">Database Schema</span>
-              </div>
-              <span className={`text-2xl font-bold ${getScoreColor(reportData.category_scores.database_schema)}`}>
-                {reportData.category_scores.database_schema}
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className={`h-2 rounded-full ${reportData.category_scores.database_schema >= 85 ? 'bg-green-600' : reportData.category_scores.database_schema >= 70 ? 'bg-yellow-600' : 'bg-red-600'}`}
-                style={{ width: `${reportData.category_scores.database_schema}%` }}
-              ></div>
-            </div>
-          </div>
-
-          {/* Migration Consistency */}
-          <div className={`p-4 rounded-lg border ${getScoreBgColor(reportData.category_scores.migration_consistency)}`}>
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <Activity size={20} />
-                <span className="font-semibold">Migration Tutarlılığı</span>
-              </div>
-              <span className={`text-2xl font-bold ${getScoreColor(reportData.category_scores.migration_consistency)}`}>
-                {reportData.category_scores.migration_consistency}
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className={`h-2 rounded-full ${reportData.category_scores.migration_consistency >= 85 ? 'bg-green-600' : reportData.category_scores.migration_consistency >= 70 ? 'bg-yellow-600' : 'bg-red-600'}`}
-                style={{ width: `${reportData.category_scores.migration_consistency}%` }}
-              ></div>
-            </div>
-          </div>
-
-          {/* Endpoint Architecture */}
-          <div className={`p-4 rounded-lg border ${getScoreBgColor(reportData.category_scores.endpoint_architecture)}`}>
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <Globe size={20} />
-                <span className="font-semibold">Endpoint Mimarisi</span>
-              </div>
-              <span className={`text-2xl font-bold ${getScoreColor(reportData.category_scores.endpoint_architecture)}`}>
-                {reportData.category_scores.endpoint_architecture}
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className={`h-2 rounded-full ${reportData.category_scores.endpoint_architecture >= 85 ? 'bg-green-600' : reportData.category_scores.endpoint_architecture >= 70 ? 'bg-yellow-600' : 'bg-red-600'}`}
-                style={{ width: `${reportData.category_scores.endpoint_architecture}%` }}
-              ></div>
-            </div>
-          </div>
-
-          {/* Security Implementation */}
-          <div className={`p-4 rounded-lg border ${getScoreBgColor(reportData.category_scores.security_implementation)}`}>
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <Shield size={20} />
-                <span className="font-semibold">Güvenlik</span>
-              </div>
-              <span className={`text-2xl font-bold ${getScoreColor(reportData.category_scores.security_implementation)}`}>
-                {reportData.category_scores.security_implementation}
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className={`h-2 rounded-full ${reportData.category_scores.security_implementation >= 85 ? 'bg-green-600' : reportData.category_scores.security_implementation >= 70 ? 'bg-yellow-600' : 'bg-red-600'}`}
-                style={{ width: `${reportData.category_scores.security_implementation}%` }}
-              ></div>
-            </div>
-          </div>
-
-          {/* RLS & Multi-Tenancy */}
-          <div className={`p-4 rounded-lg border ${getScoreBgColor(reportData.category_scores.rls_multi_tenancy)}`}>
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <Layers size={20} />
-                <span className="font-semibold">RLS & Multi-Tenancy</span>
-              </div>
-              <span className={`text-2xl font-bold ${getScoreColor(reportData.category_scores.rls_multi_tenancy)}`}>
-                {reportData.category_scores.rls_multi_tenancy}
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className={`h-2 rounded-full ${reportData.category_scores.rls_multi_tenancy >= 85 ? 'bg-green-600' : reportData.category_scores.rls_multi_tenancy >= 70 ? 'bg-yellow-600' : 'bg-red-600'}`}
-                style={{ width: `${reportData.category_scores.rls_multi_tenancy}%` }}
-              ></div>
-            </div>
-          </div>
-
-          {/* Best Practices */}
-          <div className={`p-4 rounded-lg border ${getScoreBgColor(reportData.category_scores.best_practices)}`}>
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <CheckCircle size={20} />
-                <span className="font-semibold">Best Practices</span>
-              </div>
-              <span className={`text-2xl font-bold ${getScoreColor(reportData.category_scores.best_practices)}`}>
-                {reportData.category_scores.best_practices}
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className={`h-2 rounded-full ${reportData.category_scores.best_practices >= 85 ? 'bg-green-600' : reportData.category_scores.best_practices >= 70 ? 'bg-yellow-600' : 'bg-red-600'}`}
-                style={{ width: `${reportData.category_scores.best_practices}%` }}
-              ></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Section 3: Database Analysis */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <Database size={24} className="text-blue-600" />
-          Database & Migration Analizi
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <div className="text-sm text-gray-600 mb-1">Beklenen Tablolar</div>
-            <div className="text-3xl font-bold text-blue-600">{reportData.database_analysis.tables.expected}</div>
-          </div>
-          <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-            <div className="text-sm text-gray-600 mb-1">Mevcut Tablolar</div>
-            <div className="text-3xl font-bold text-green-600">{reportData.database_analysis.tables.actual}</div>
-          </div>
-          <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-            <div className="text-sm text-gray-600 mb-1">Eksik Tablolar</div>
-            <div className="text-3xl font-bold text-red-600">{reportData.database_analysis.tables.missing}</div>
-          </div>
-        </div>
-        {reportData.database_analysis.tables.missing > 0 && (
-          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <div className="flex items-start gap-2">
-              <AlertTriangle className="text-yellow-600 flex-shrink-0 mt-1" size={20} />
-              <div>
-                <p className="font-semibold text-gray-900">Uyarı</p>
-                <p className="text-sm text-gray-600">
-                  {reportData.database_analysis.tables.missing} tablo eksik. Migration'ları kontrol edin.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Section 4: Endpoint Analysis */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <Globe size={24} className="text-blue-600" />
-          Endpoint Analizi
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-            <div className="text-sm text-gray-600 mb-1">Mevcut Endpoint</div>
-            <div className="text-3xl font-bold text-gray-900">{reportData.endpoint_analysis.total}</div>
-          </div>
-          <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-            <div className="text-sm text-gray-600 mb-1">Hedef Endpoint</div>
-            <div className="text-3xl font-bold text-green-600">{reportData.endpoint_analysis.target}</div>
-          </div>
-          <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-            <div className="text-sm text-gray-600 mb-1">Fazla Endpoint</div>
-            <div className="text-3xl font-bold text-red-600">
-              {reportData.endpoint_analysis.total - reportData.endpoint_analysis.target}
-            </div>
-          </div>
-        </div>
-        {reportData.endpoint_analysis.total > reportData.endpoint_analysis.target && (
-          <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-            <div className="flex items-start gap-2">
-              <AlertCircle className="text-red-600 flex-shrink-0 mt-1" size={20} />
-              <div>
-                <p className="font-semibold text-gray-900">Endpoint Explosion Tespit Edildi!</p>
-                <p className="text-sm text-gray-600">
-                  {reportData.endpoint_analysis.total - reportData.endpoint_analysis.target} fazla endpoint var. 
-                  Generic pattern'e geçilmeli.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Section 5: Security Checklist */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <Shield size={24} className="text-blue-600" />
-          Güvenlik Kontrol Listesi
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {Object.entries(reportData.security_checklist).map(([key, value]) => (
-            <div
-              key={key}
-              className={`flex items-center gap-3 p-3 rounded-lg ${
-                value ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
-              }`}
-            >
-              {getStatusIcon(value)}
-              <span className="text-sm font-medium text-gray-900">
-                {key.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Section 6: Action Plan */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <h3 className="text-xl font-semibold text-gray-900 mb-4">Önceliklendirilmiş Aksiyon Planı</h3>
-        
-        {/* P0 - Critical */}
-        {reportData.action_plan.p0_critical.length > 0 && (
-          <div className="mb-6">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="px-3 py-1 bg-red-600 text-white text-sm font-semibold rounded">P0 - KRİTİK</div>
-              <span className="text-sm text-gray-600">Hemen yapılmalı</span>
-            </div>
-            <div className="space-y-2">
-              {reportData.action_plan.p0_critical.map((item: any, index: number) => (
-                <div key={index} className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 bg-red-600 text-white rounded-full flex items-center justify-center text-sm font-semibold">
-                      {index + 1}
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-semibold text-gray-900">{item.title || item.description}</p>
-                      {item.details && (
-                        <p className="text-sm text-gray-600 mt-1">{item.details}</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* P1 - High */}
-        {reportData.action_plan.p1_high.length > 0 && (
-          <div className="mb-6">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="px-3 py-1 bg-yellow-600 text-white text-sm font-semibold rounded">P1 - YÜKSEK</div>
-              <span className="text-sm text-gray-600">Bu sprint'te yapılmalı</span>
-            </div>
-            <div className="space-y-2">
-              {reportData.action_plan.p1_high.map((item: any, index: number) => (
-                <div key={index} className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 bg-yellow-600 text-white rounded-full flex items-center justify-center text-sm font-semibold">
-                      {index + 1}
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-semibold text-gray-900">{item.title || item.description}</p>
-                      {item.details && (
-                        <p className="text-sm text-gray-600 mt-1">{item.details}</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* P2 - Medium */}
-        {reportData.action_plan.p2_medium.length > 0 && (
+      {/* Header - Compact Score Cards */}
+      <div className="bg-white rounded-lg shadow p-4 border border-gray-200">
+        <div className="flex items-center justify-between mb-4">
           <div>
-            <div className="flex items-center gap-2 mb-3">
-              <div className="px-3 py-1 bg-blue-600 text-white text-sm font-semibold rounded">P2 - ORTA</div>
-              <span className="text-sm text-gray-600">Sonraki sprint'te yapılmalı</span>
-            </div>
-            <div className="space-y-2">
-              {reportData.action_plan.p2_medium.map((item: any, index: number) => (
-                <div key={index} className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-semibold">
-                      {index + 1}
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-semibold text-gray-900">{item.title || item.description}</p>
-                      {item.details && (
-                        <p className="text-sm text-gray-600 mt-1">{item.details}</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <h2 className="text-2xl font-bold text-gray-900">Mimari Sağlık Raporu</h2>
+            <p className="text-sm text-gray-500">
+              Backend mimari uyumluluğu ve sağlık kontrolü
+              {lastUpdated && ` • Son güncelleme: ${lastUpdated.toLocaleTimeString('tr-TR')}`}
+            </p>
           </div>
-        )}
+          <div className="flex items-center space-x-4">
+            <div className="text-center">
+              <div className={`text-4xl font-bold ${getScoreColor(reportData.overall_score)}`}>
+                {Math.round(reportData.overall_score)}/100
+              </div>
+              <div className="text-xs text-gray-500 mt-1">GENEL SKOR</div>
+            </div>
+            <button
+              onClick={fetchArchitectureReport}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center"
+            >
+              <RefreshCw size={16} className="mr-2" />
+              Yenile
+            </button>
+          </div>
+        </div>
+
+        {/* Compact Category Scores */}
+        <div className="grid grid-cols-6 gap-3">
+          <div className={`${getScoreBgColor(reportData.category_scores.database_schema)} border rounded-lg p-3 text-center`}>
+            <Database size={20} className="mx-auto mb-1 text-gray-700" />
+            <div className={`text-2xl font-bold ${getScoreColor(reportData.category_scores.database_schema)}`}>
+              {reportData.category_scores.database_schema}
+            </div>
+            <div className="text-xs text-gray-600 mt-1">Database</div>
+          </div>
+
+          <div className={`${getScoreBgColor(reportData.category_scores.migration_consistency)} border rounded-lg p-3 text-center`}>
+            <Activity size={20} className="mx-auto mb-1 text-gray-700" />
+            <div className={`text-2xl font-bold ${getScoreColor(reportData.category_scores.migration_consistency)}`}>
+              {Math.round(reportData.category_scores.migration_consistency)}
+            </div>
+            <div className="text-xs text-gray-600 mt-1">Migration</div>
+          </div>
+
+          <div className={`${getScoreBgColor(reportData.category_scores.endpoint_architecture)} border rounded-lg p-3 text-center`}>
+            <Globe size={20} className="mx-auto mb-1 text-gray-700" />
+            <div className={`text-2xl font-bold ${getScoreColor(reportData.category_scores.endpoint_architecture)}`}>
+              {reportData.category_scores.endpoint_architecture}
+            </div>
+            <div className="text-xs text-gray-600 mt-1">Endpoint</div>
+          </div>
+
+          <div className={`${getScoreBgColor(reportData.category_scores.security_implementation)} border rounded-lg p-3 text-center`}>
+            <Shield size={20} className="mx-auto mb-1 text-gray-700" />
+            <div className={`text-2xl font-bold ${getScoreColor(reportData.category_scores.security_implementation)}`}>
+              {reportData.category_scores.security_implementation}
+            </div>
+            <div className="text-xs text-gray-600 mt-1">Security</div>
+          </div>
+
+          <div className={`${getScoreBgColor(reportData.category_scores.rls_multi_tenancy)} border rounded-lg p-3 text-center`}>
+            <Layers size={20} className="mx-auto mb-1 text-gray-700" />
+            <div className={`text-2xl font-bold ${getScoreColor(reportData.category_scores.rls_multi_tenancy)}`}>
+              {reportData.category_scores.rls_multi_tenancy}
+            </div>
+            <div className="text-xs text-gray-600 mt-1">RLS</div>
+          </div>
+
+          <div className={`${getScoreBgColor(reportData.category_scores.best_practices)} border rounded-lg p-3 text-center`}>
+            <TrendingUp size={20} className="mx-auto mb-1 text-gray-700" />
+            <div className={`text-2xl font-bold ${getScoreColor(reportData.category_scores.best_practices)}`}>
+              {reportData.category_scores.best_practices}
+            </div>
+            <div className="text-xs text-gray-600 mt-1">Best Practice</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Global Search */}
+      <div className="bg-white rounded-lg shadow p-4 border border-gray-200">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+          <input
+            type="text"
+            placeholder="Endpoint, özellik veya aksiyon ara..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+      </div>
+
+      {/* Table 1: Authentication Usage Report */}
+      <div className="bg-white rounded-lg shadow border border-gray-200">
+        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-bold text-gray-900 flex items-center">
+              <Shield size={20} className="mr-2 text-blue-600" />
+              🔐 Authentication Kullanım Raporu
+            </h3>
+            <p className="text-sm text-gray-500 mt-1">
+              Endpoint'lerin JWT vs API Key kullanımı • {reportData.authentication_usage.stats.correct}/{reportData.authentication_usage.stats.total} doğru ({Math.round((reportData.authentication_usage.stats.correct / reportData.authentication_usage.stats.total) * 100)}%)
+            </p>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Filter size={16} className="text-gray-400" />
+            <select
+              value={authFilter}
+              onChange={(e) => setAuthFilter(e.target.value)}
+              className="border border-gray-300 rounded px-3 py-1 text-sm"
+            >
+              <option value="all">Tümü ({reportData.authentication_usage.endpoints.length})</option>
+              <option value="correct">✅ Doğru ({reportData.authentication_usage.stats.correct})</option>
+              <option value="wrong">⚠️ Yanlış ({reportData.authentication_usage.stats.wrong})</option>
+              <option value="missing">❌ Eksik ({reportData.authentication_usage.stats.missing})</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">ENDPOINT</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">METHOD</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">ŞU AN</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">OLMALI</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">DURUM</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {filteredAuthEndpoints.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                    {searchTerm || authFilter !== 'all' ? 'Filtre ile eşleşen sonuç yok' : 'Endpoint bulunamadı'}
+                  </td>
+                </tr>
+              ) : (
+                filteredAuthEndpoints.map((ep, idx) => (
+                  <tr key={idx} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 text-sm font-mono text-gray-700">{ep.endpoint}</td>
+                    <td className="px-4 py-3">
+                      <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">
+                        {ep.method}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium uppercase">
+                        {ep.current_auth === 'none' ? '❌ None' : ep.current_auth === 'jwt' ? '🎫 JWT' : '🔑 API Key'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium uppercase">
+                        {ep.expected_auth === 'jwt' ? '🎫 JWT' : '🔑 API Key'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center space-x-2">
+                        {getStatusIcon(ep.status)}
+                        <span className={getStatusBadge(ep.status)}>
+                          {ep.status === 'correct' ? 'DOĞRU' : ep.status === 'wrong' ? 'YANLTI' : 'EKSİK'}
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Table 2: API Key Implementation Report */}
+      <div className="bg-white rounded-lg shadow border border-gray-200">
+        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-bold text-gray-900 flex items-center">
+              <Layers size={20} className="mr-2 text-green-600" />
+              🔑 API Key Implementasyon Raporu
+            </h3>
+            <p className="text-sm text-gray-500 mt-1">
+              API Key özellikleri ve durumları • {reportData.api_key_implementation.filter(f => f.status === 'implemented').length}/{reportData.api_key_implementation.length} tamamlandı ({Math.round((reportData.api_key_implementation.filter(f => f.status === 'implemented').length / reportData.api_key_implementation.length) * 100)}%)
+            </p>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Filter size={16} className="text-gray-400" />
+            <select
+              value={apiKeyFilter}
+              onChange={(e) => setApiKeyFilter(e.target.value)}
+              className="border border-gray-300 rounded px-3 py-1 text-sm"
+            >
+              <option value="all">Tümü ({reportData.api_key_implementation.length})</option>
+              <option value="implemented">✅ Tamamlandı ({reportData.api_key_implementation.filter(f => f.status === 'implemented').length})</option>
+              <option value="warning">⚠️ Uyarı ({reportData.api_key_implementation.filter(f => f.status === 'warning').length})</option>
+              <option value="missing">❌ Eksik ({reportData.api_key_implementation.filter(f => f.status === 'missing').length})</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">ÖZELLİK</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">DURUM</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">TABLO/KOLON</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">NOTLAR</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {filteredApiKeyFeatures.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-4 py-8 text-center text-gray-500">
+                    {searchTerm || apiKeyFilter !== 'all' ? 'Filtre ile eşleşen sonuç yok' : 'Özellik bulunamadı'}
+                  </td>
+                </tr>
+              ) : (
+                filteredApiKeyFeatures.map((feat, idx) => (
+                  <tr key={idx} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{feat.feature}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center space-x-2">
+                        {getStatusIcon(feat.status)}
+                        <span className={getStatusBadge(feat.status)}>
+                          {feat.status === 'implemented' ? 'TAMAMLANDI' : feat.status === 'warning' ? 'UYARI' : 'EKSİK'}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-sm font-mono text-gray-700">
+                      {feat.table === '-' ? '-' : `${feat.table}.${feat.column}`}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600">{feat.notes}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Table 3: Priority Actions */}
+      <div className="bg-white rounded-lg shadow border border-gray-200">
+        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-bold text-gray-900 flex items-center">
+              <AlertTriangle size={20} className="mr-2 text-orange-600" />
+              🎯 Öncelikli Aksiyonlar
+            </h3>
+            <p className="text-sm text-gray-500 mt-1">
+              Yapılması gereken işlemler • {reportData.priority_actions.filter(a => a.status === 'pending').length} beklemede, {reportData.priority_actions.filter(a => a.status === 'done').length} tamamlandı
+            </p>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Filter size={16} className="text-gray-400" />
+            <select
+              value={actionFilter}
+              onChange={(e) => setActionFilter(e.target.value)}
+              className="border border-gray-300 rounded px-3 py-1 text-sm"
+            >
+              <option value="all">Tümü ({reportData.priority_actions.length})</option>
+              <option value="p0">🔴 P0 ({reportData.priority_actions.filter(a => a.priority === 'p0').length})</option>
+              <option value="p1">🟠 P1 ({reportData.priority_actions.filter(a => a.priority === 'p1').length})</option>
+              <option value="p2">🟡 P2 ({reportData.priority_actions.filter(a => a.priority === 'p2').length})</option>
+              <option value="p3">🔵 P3 ({reportData.priority_actions.filter(a => a.priority === 'p3').length})</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">ÖNCELİK</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">BAŞLIK</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">AÇIKLAMA</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">PHASE</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">DURUM</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">ETKİ</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {filteredActions.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                    {searchTerm || actionFilter !== 'all' ? 'Filtre ile eşleşen sonuç yok' : 'Aksiyon bulunamadı'}
+                  </td>
+                </tr>
+              ) : (
+                filteredActions.map((action, idx) => (
+                  <tr key={idx} className="hover:bg-gray-50">
+                    <td className="px-4 py-3">
+                      <span className={getPriorityBadge(action.priority)}>
+                        {action.priority.toUpperCase()}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{action.title}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600 max-w-md">{action.description}</td>
+                    <td className="px-4 py-3">
+                      <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">
+                        {action.phase}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center space-x-2">
+                        {getStatusIcon(action.status)}
+                        <span className={getStatusBadge(action.status)}>
+                          {action.status === 'done' ? 'TAMAM' : 'BEKLİYOR'}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600 max-w-xs">{action.impact}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
 };
 
 export default ArchitectureHealthTab;
-
