@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Database, FileText, Activity, GitCompare, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Database, FileText, Activity, GitCompare, CheckCircle, Target } from 'lucide-react';
 import BackendTablesTab from './BackendTablesTab';
 import BackendMigrationsTab from './BackendMigrationsTab';
 import ArchitectureHealthTab from './ArchitectureHealthTab';
 import TableComparisonTab from './TableComparisonTab';
 import EndpointComplianceTab from './EndpointComplianceTab';
+import { PlanComplianceTab } from './PlanComplianceTab';
 
-type TabType = 'tables' | 'migrations' | 'architecture' | 'comparison' | 'compliance';
+type TabType = 'tables' | 'migrations' | 'architecture' | 'comparison' | 'compliance' | 'plan';
 
 const BackendReportsPage = () => {
   const navigate = useNavigate();
@@ -43,12 +44,14 @@ const BackendReportsPage = () => {
   const showArchitectureTab = ['admin', 'master_admin'].includes(userRole);
   const showComparisonTab = ['admin', 'master_admin'].includes(userRole);
   const showComplianceTab = ['admin', 'master_admin'].includes(userRole);
+  const showPlanTab = ['admin', 'master_admin'].includes(userRole);
   
   console.log('🎭 Current User Role:', userRole);
   console.log('📊 Show Migration Tab:', showMigrationTab);
   console.log('🏗️  Show Architecture Tab:', showArchitectureTab);
   console.log('📋 Show Comparison Tab:', showComparisonTab);
   console.log('✅ Show Compliance Tab:', showComplianceTab);
+  console.log('🎯 Show Plan Tab:', showPlanTab);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8">
@@ -149,6 +152,21 @@ const BackendReportsPage = () => {
                 <span>📊 Endpoint Compliance</span>
               </button>
             )}
+
+            {/* Plan Compliance - Sadece admin ve master_admin */}
+            {showPlanTab && (
+              <button
+                onClick={() => setActiveTab('plan')}
+                className={`flex items-center gap-2 px-6 py-4 font-medium transition-all ${
+                  activeTab === 'plan'
+                    ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
+              >
+                <Target size={20} />
+                <span>🎯 Plan Uyumu</span>
+              </button>
+            )}
           </div>
 
           {/* Tab Content */}
@@ -158,6 +176,7 @@ const BackendReportsPage = () => {
             {activeTab === 'architecture' && showArchitectureTab && <ArchitectureHealthTab />}
             {activeTab === 'comparison' && showComparisonTab && <TableComparisonTab />}
             {activeTab === 'compliance' && showComplianceTab && <EndpointComplianceTab />}
+            {activeTab === 'plan' && showPlanTab && <PlanComplianceTab />}
           </div>
         </div>
       </div>
