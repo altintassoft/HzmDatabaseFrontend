@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Search, ChevronDown, ChevronUp, Database, Filter, X, Eye, RefreshCw, Copy, Check } from 'lucide-react';
+import api from '../services/api';
 
 // 🚀 NO MORE MOCK DATA! Dynamic data from backend API
 
@@ -63,15 +64,8 @@ const BackendTablesTab = () => {
     setIsLoadingTables(true);
     setTablesError(null);
     try {
-      const API_URL = import.meta.env.VITE_API_URL || '/api/v1';
       // 🎯 MASTER ADMIN ENDPOINT - Tek endpoint, tüm işlemler!
-      const response = await fetch(`${API_URL}/admin/database?type=tables&include=columns,indexes,rls,fk`);
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch tables: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
+      const data = await api.get('/admin/database?type=tables&include=columns,indexes,rls,fk');
       
       // 🐛 DEBUG: Response yapısını görelim
       console.log('📋 TABLES RESPONSE:', {
@@ -116,20 +110,13 @@ const BackendTablesTab = () => {
     setIsLoadingData(true);
     setDataError(null);
     try {
-      const API_URL = import.meta.env.VITE_API_URL || '/api/v1';
       // 🎯 MASTER ADMIN ENDPOINT - Single table with data
-      const fetchUrl = `${API_URL}/admin/database?type=table&schema=${schema}&table=${table}&include=data&limit=100`;
+      const fetchUrl = `/admin/database?type=table&schema=${schema}&table=${table}&include=data&limit=100`;
       
       // 🐛 DEBUG: URL'i görelim
       console.log('🔗 FETCH URL:', fetchUrl);
       
-      const response = await fetch(fetchUrl);
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch data: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
+      const data = await api.get(fetchUrl);
       
       // 🐛 DEBUG: Response yapısını görelim
       console.log('📊 TABLE DATA RESPONSE:', {
