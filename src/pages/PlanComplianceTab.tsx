@@ -26,6 +26,7 @@ export const PlanComplianceTab: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [copySuccess, setCopySuccess] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -44,6 +45,93 @@ export const PlanComplianceTab: React.FC = () => {
       setError(err.response?.data?.message || err.message || 'Failed to fetch plan compliance data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const copyAllReport = async () => {
+    if (!data) return;
+
+    const categoryNames: { [key: string]: string } = {
+      authentication: 'Authentication',
+      generic_data: 'Generic Data (EN ÖNEMLİ!)',
+      admin: 'Admin',
+      settings: 'Settings',
+      compute: 'Compute',
+      health: 'Health'
+    };
+
+    let reportText = `
+═══════════════════════════════════════════════════════
+📊 PLAN vs BACKEND KARŞILAŞTIRMA RAPORU
+SMART_ENDPOINT_STRATEGY_V2 ile Backend Uyum Raporu
+═══════════════════════════════════════════════════════
+
+📈 ÖZET İSTATİSTİKLER:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  📋 Plan'da Olması Gereken:  ${data.summary.totalExpected}
+  💾 Backend'de Var:          ${data.summary.totalActual}
+  ✅ Uyumlu:                  ${data.summary.totalMatched}
+  🔴 EKSİK:                   ${data.summary.totalMissing}
+  ⚠️  FAZLADAN:               ${data.summary.extraCount}
+  🎯 Başarı Oranı:            ${data.summary.successRate}%
+
+`;
+
+    // Categories
+    reportText += `\n📊 KATEGORİ DETAYLARI:\n${'━'.repeat(55)}\n\n`;
+
+    Object.entries(data.categories).forEach(([key, category]) => {
+      const status = category.status === 'complete' ? '✅' : 
+                     category.status === 'partial' ? '⚠️' : '❌';
+      
+      reportText += `${status} ${categoryNames[key] || key.toUpperCase()}\n`;
+      reportText += `   ${category.matched.length}/${category.expected.length} endpoint uyumlu (${category.status})\n\n`;
+
+      // Matched endpoints
+      if (category.matched.length > 0) {
+        reportText += `   ✅ UYUMLU (${category.matched.length}):\n`;
+        category.matched.forEach(endpoint => {
+          reportText += `      ${endpoint.method.padEnd(6)} ${endpoint.path}\n`;
+          reportText += `             📝 ${endpoint.description}\n`;
+          reportText += `             📁 ${endpoint.file}\n`;
+        });
+        reportText += '\n';
+      }
+
+      // Missing endpoints
+      if (category.missing.length > 0) {
+        reportText += `   🔴 EKSİK (${category.missing.length}):\n`;
+        category.missing.forEach(endpoint => {
+          reportText += `      ${endpoint.method.padEnd(6)} ${endpoint.path}\n`;
+          reportText += `             📝 ${endpoint.description}\n`;
+        });
+        reportText += '\n';
+      }
+
+      reportText += '\n';
+    });
+
+    // Extra endpoints
+    if (data.extraEndpoints.length > 0) {
+      reportText += `\n⚠️ FAZLADAN ENDPOINT'LER (Plan'da yok, Backend'de var):\n${'━'.repeat(55)}\n\n`;
+      data.extraEndpoints.forEach(endpoint => {
+        reportText += `   ${endpoint.method.padEnd(6)} ${endpoint.path}\n`;
+        reportText += `          📁 ${endpoint.file}\n`;
+      });
+    }
+
+    reportText += `\n${'═'.repeat(55)}\n`;
+    reportText += `Rapor Tarihi: ${new Date().toLocaleString('tr-TR')}\n`;
+    reportText += `Backend URL: ${window.location.origin}\n`;
+    reportText += `${'═'.repeat(55)}\n`;
+
+    try {
+      await navigator.clipboard.writeText(reportText);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 3000);
+    } catch (err) {
+      console.error('Kopyalama hatası:', err);
+      alert('Kopyalama başarısız oldu. Lütfen tarayıcı izinlerini kontrol edin.');
     }
   };
 
@@ -119,8 +207,36 @@ export const PlanComplianceTab: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6 rounded-lg shadow-lg">
-        <h2 className="text-2xl font-bold mb-2">📊 Plan vs Backend Karşılaştırması</h2>
-        <p className="text-blue-100">SMART_ENDPOINT_STRATEGY_V2 ile Backend Uyum Raporu</p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h2 className="text-2xl font-bold mb-2">📊 Plan vs Backend Karşılaştırması</h2>
+            <p className="text-blue-100">SMART_ENDPOINT_STRATEGY_V2 ile Backend Uyum Raporu</p>
+          </div>
+          <button
+            onClick={copyAllReport}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+              copySuccess
+                ? 'bg-green-500 text-white'
+                : 'bg-white text-blue-600 hover:bg-blue-50'
+            }`}
+          >
+            {copySuccess ? (
+              <>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                Kopyalandı!
+              </>
+            ) : (
+              <>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                Tümünü Kopyala
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Summary Cards */}
