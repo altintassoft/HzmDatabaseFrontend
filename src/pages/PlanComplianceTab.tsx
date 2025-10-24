@@ -36,8 +36,9 @@ export const PlanComplianceTab: React.FC = () => {
       setLoading(true);
       setError(null);
       const response = await api.get('/admin/database?type=plan-compliance');
-      console.log('📊 Plan Compliance Data:', response.data);
-      setData(response.data);
+      console.log('📊 Plan Compliance Response:', response);
+      // Backend returns data directly, not wrapped in response.data
+      setData(response);
     } catch (err: any) {
       console.error('❌ Plan Compliance Error:', err);
       setError(err.response?.data?.message || err.message || 'Failed to fetch plan compliance data');
