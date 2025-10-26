@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Database, FileText, Activity, GitCompare, Target } from 'lucide-react';
+import { ArrowLeft, Database, FileText, Activity, GitCompare, Target, FolderTree } from 'lucide-react';
 import BackendTablesTab from './BackendTablesTab';
 import MigrationSchemaTab from './MigrationSchemaTab';
 import ArchitectureComplianceTab from './ArchitectureComplianceTab';
 import { PlanComplianceTab } from './PlanComplianceTab';
+import ProjectStructureReportTab from './ProjectStructureReportTab';
 
-type TabType = 'tables' | 'migration-schema' | 'architecture' | 'plan';
+type TabType = 'tables' | 'migration-schema' | 'architecture' | 'plan' | 'project-structure';
 
 const BackendReportsPage = () => {
   const navigate = useNavigate();
@@ -37,15 +38,17 @@ const BackendReportsPage = () => {
     console.log('✅ User Role Set:', userRole);
   }, []);
 
-  // 🔒 ROLE-BASED TAB VISIBILITY: Migration/Schema, Architecture, Plan tab'ları sadece admin ve master_admin için
+  // 🔒 ROLE-BASED TAB VISIBILITY: Migration/Schema, Architecture, Plan, Project Structure tab'ları sadece admin ve master_admin için
   const showMigrationSchemaTab = ['admin', 'master_admin'].includes(userRole);
   const showArchitectureTab = ['admin', 'master_admin'].includes(userRole);
   const showPlanTab = ['admin', 'master_admin'].includes(userRole);
+  const showProjectStructureTab = ['admin', 'master_admin'].includes(userRole);
   
   console.log('🎭 Current User Role:', userRole);
   console.log('📊 Show Migration/Schema Tab:', showMigrationSchemaTab);
   console.log('🏗️  Show Architecture Tab:', showArchitectureTab);
   console.log('🎯 Show Plan Tab:', showPlanTab);
+  console.log('📁 Show Project Structure Tab:', showProjectStructureTab);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8">
@@ -131,6 +134,21 @@ const BackendReportsPage = () => {
                 <span>🎯 Plan Uyumu</span>
               </button>
             )}
+
+            {/* Project Structure - Sadece admin ve master_admin */}
+            {showProjectStructureTab && (
+              <button
+                onClick={() => setActiveTab('project-structure')}
+                className={`flex items-center gap-2 px-6 py-4 font-medium transition-all ${
+                  activeTab === 'project-structure'
+                    ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
+              >
+                <FolderTree size={20} />
+                <span>📁 Proje Yapısı</span>
+              </button>
+            )}
           </div>
 
           {/* Tab Content */}
@@ -139,6 +157,7 @@ const BackendReportsPage = () => {
             {activeTab === 'migration-schema' && showMigrationSchemaTab && <MigrationSchemaTab />}
             {activeTab === 'architecture' && showArchitectureTab && <ArchitectureComplianceTab />}
             {activeTab === 'plan' && showPlanTab && <PlanComplianceTab />}
+            {activeTab === 'project-structure' && showProjectStructureTab && <ProjectStructureReportTab />}
           </div>
         </div>
       </div>

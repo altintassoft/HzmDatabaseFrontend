@@ -23,7 +23,6 @@ import UpgradePlanPage from './pages/UpgradePlanPage';
 import BackendReportsPage from './pages/BackendReportsPage';
 import UserSettingsPage from './pages/UserSettingsPage';
 import SystemSettingsPage from './pages/SystemSettingsPage';
-import ProjectStructurePage from './pages/ProjectStructurePage';
 // CIO Module Import
 import { CIODashboard } from './modules/cio';
 import './App.css';

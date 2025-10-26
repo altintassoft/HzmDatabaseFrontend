@@ -13,8 +13,7 @@ import {
   Crown,
   Activity,
   Megaphone,
-  Server,
-  FolderTree
+  Server
 } from 'lucide-react';
 
 const AdminPage = () => {
@@ -218,27 +217,9 @@ const AdminPage = () => {
               </div>
               <div className="text-2xl font-bold text-cyan-600">🗄️</div>
             </div>
-            <p className="text-sm text-gray-600">Railway tablo envanteri</p>
+            <p className="text-sm text-gray-600">Railway tablo envanteri & Proje yapısı</p>
             <div className="mt-3 text-xs text-gray-500">
-              core.users, core.tenants vs.
-            </div>
-          </div>
-
-          {/* NEW: Project Structure Card */}
-          <div 
-            onClick={() => navigate('/project-structure')}
-            className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-all cursor-pointer border-l-4 border-orange-500"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center">
-                <FolderTree className="text-orange-600 mr-3" size={24} />
-                <h3 className="text-lg font-semibold text-gray-800">Proje Yapısı</h3>
-              </div>
-              <div className="text-2xl font-bold text-orange-600">📁</div>
-            </div>
-            <p className="text-sm text-gray-600">Frontend & Backend dosya ağacı</p>
-            <div className="mt-3 text-xs text-gray-500">
-              300+ satır uyarı, 450+ bölünmeli
+              5 rapor: Tablolar, Migration, Mimari, Plan, Proje Yapısı
             </div>
           </div>
         </div>
