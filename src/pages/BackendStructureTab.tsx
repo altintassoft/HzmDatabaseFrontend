@@ -175,10 +175,17 @@ export default function BackendStructureTab() {
       const response = await api.get('/admin/database', {
         params: { type: 'project-structure', target: 'backend' }
       });
-      setData(response.data.data);
+      
+      // Backend'den error dönmüş mü kontrol et
+      if (response.data.error) {
+        setError(response.data.message || response.data.error);
+        setData(response.data.data || null);
+      } else {
+        setData(response.data.data);
+      }
     } catch (err: any) {
       console.error('Backend structure fetch error:', err);
-      setError(err.response?.data?.message || 'Veri yüklenemedi');
+      setError(err.response?.data?.message || err.message || 'Veri yüklenemedi');
     } finally {
       setLoading(false);
     }
@@ -197,8 +204,25 @@ export default function BackendStructureTab() {
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <p className="text-red-800">❌ {error}</p>
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+        <div className="flex items-start gap-3">
+          <div className="text-yellow-600 text-2xl">⚠️</div>
+          <div>
+            <h3 className="font-semibold text-yellow-900 mb-2">Production Ortamında Kullanılamaz</h3>
+            <p className="text-yellow-800 mb-3">{error}</p>
+            <div className="bg-white rounded p-3 text-sm text-gray-700">
+              <p className="font-medium mb-1">💡 Bu rapor neden çalışmıyor?</p>
+              <ul className="list-disc list-inside space-y-1 text-xs">
+                <li>Railway'de sadece backend kodu deploy edilir</li>
+                <li>Frontend dosyaları Railway sunucusunda bulunmaz</li>
+                <li>Bu rapor dosya sistemini tarar (filesystem access gerekli)</li>
+              </ul>
+              <p className="mt-2 text-xs text-gray-600">
+                <strong>Çözüm:</strong> Local development ortamında çalıştırın veya GitHub reposunu kullanın.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
