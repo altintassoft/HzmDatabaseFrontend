@@ -2,12 +2,11 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Database, FileText, Activity, GitCompare, Target } from 'lucide-react';
 import BackendTablesTab from './BackendTablesTab';
-import BackendMigrationsTab from './BackendMigrationsTab';
+import MigrationSchemaTab from './MigrationSchemaTab';
 import ArchitectureComplianceTab from './ArchitectureComplianceTab';
-import TableComparisonTab from './TableComparisonTab';
 import { PlanComplianceTab } from './PlanComplianceTab';
 
-type TabType = 'tables' | 'migrations' | 'architecture' | 'comparison' | 'plan';
+type TabType = 'tables' | 'migration-schema' | 'architecture' | 'plan';
 
 const BackendReportsPage = () => {
   const navigate = useNavigate();
@@ -38,16 +37,14 @@ const BackendReportsPage = () => {
     console.log('✅ User Role Set:', userRole);
   }, []);
 
-  // 🔒 ROLE-BASED TAB VISIBILITY: Migration, Architecture, Comparison, Plan tab'ları sadece admin ve master_admin için
-  const showMigrationTab = ['admin', 'master_admin'].includes(userRole);
+  // 🔒 ROLE-BASED TAB VISIBILITY: Migration/Schema, Architecture, Plan tab'ları sadece admin ve master_admin için
+  const showMigrationSchemaTab = ['admin', 'master_admin'].includes(userRole);
   const showArchitectureTab = ['admin', 'master_admin'].includes(userRole);
-  const showComparisonTab = ['admin', 'master_admin'].includes(userRole);
   const showPlanTab = ['admin', 'master_admin'].includes(userRole);
   
   console.log('🎭 Current User Role:', userRole);
-  console.log('📊 Show Migration Tab:', showMigrationTab);
+  console.log('📊 Show Migration/Schema Tab:', showMigrationSchemaTab);
   console.log('🏗️  Show Architecture Tab:', showArchitectureTab);
-  console.log('📋 Show Comparison Tab:', showComparisonTab);
   console.log('🎯 Show Plan Tab:', showPlanTab);
 
   return (
@@ -90,18 +87,18 @@ const BackendReportsPage = () => {
               <span>Backend Tabloları</span>
             </button>
 
-            {/* Migration Raporu - Sadece admin ve master_admin */}
-            {showMigrationTab && (
+            {/* Migration & Schema - Sadece admin ve master_admin */}
+            {showMigrationSchemaTab && (
               <button
-                onClick={() => setActiveTab('migrations')}
+                onClick={() => setActiveTab('migration-schema')}
                 className={`flex items-center gap-2 px-6 py-4 font-medium transition-all ${
-                  activeTab === 'migrations'
+                  activeTab === 'migration-schema'
                     ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                 }`}
               >
-                <FileText size={20} />
-                <span>Migration Raporu</span>
+                <GitCompare size={20} />
+                <span>📋 Migration & Schema</span>
               </button>
             )}
 
@@ -117,21 +114,6 @@ const BackendReportsPage = () => {
               >
                 <Activity size={20} />
                 <span>🏗️ Mimari Uyumluluk</span>
-              </button>
-            )}
-
-            {/* Tablo Karşılaştırma - Sadece admin ve master_admin */}
-            {showComparisonTab && (
-              <button
-                onClick={() => setActiveTab('comparison')}
-                className={`flex items-center gap-2 px-6 py-4 font-medium transition-all ${
-                  activeTab === 'comparison'
-                    ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                }`}
-              >
-                <GitCompare size={20} />
-                <span>📋 Tablo Karşılaştırma</span>
               </button>
             )}
 
@@ -154,9 +136,8 @@ const BackendReportsPage = () => {
           {/* Tab Content */}
           <div className="p-6">
             {activeTab === 'tables' && <BackendTablesTab />}
-            {activeTab === 'migrations' && showMigrationTab && <BackendMigrationsTab />}
+            {activeTab === 'migration-schema' && showMigrationSchemaTab && <MigrationSchemaTab />}
             {activeTab === 'architecture' && showArchitectureTab && <ArchitectureComplianceTab />}
-            {activeTab === 'comparison' && showComparisonTab && <TableComparisonTab />}
             {activeTab === 'plan' && showPlanTab && <PlanComplianceTab />}
           </div>
         </div>
