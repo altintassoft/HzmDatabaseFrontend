@@ -1,10 +1,10 @@
 // API Service for Backend Communication
 // NO MOCK DATA - All data from backend API
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://hzmbackendveritabani-production.up.railway.app/api/v1';
+const API_URL = import.meta.env.VITE_API_URL;
 
 if (!API_URL) {
-  console.warn('VITE_API_URL not set, using hardcoded Railway URL');
+  throw new Error('VITE_API_URL environment variable is not set');
 }
 
 interface LoginCredentials {
