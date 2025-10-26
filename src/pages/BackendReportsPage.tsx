@@ -1,14 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Database, FileText, Activity, GitCompare, CheckCircle, Target } from 'lucide-react';
+import { ArrowLeft, Database, FileText, Activity, GitCompare, Target } from 'lucide-react';
 import BackendTablesTab from './BackendTablesTab';
 import BackendMigrationsTab from './BackendMigrationsTab';
-import ArchitectureHealthTab from './ArchitectureHealthTab';
+import ArchitectureComplianceTab from './ArchitectureComplianceTab';
 import TableComparisonTab from './TableComparisonTab';
-import EndpointComplianceTab from './EndpointComplianceTab';
 import { PlanComplianceTab } from './PlanComplianceTab';
 
-type TabType = 'tables' | 'migrations' | 'architecture' | 'comparison' | 'compliance' | 'plan';
+type TabType = 'tables' | 'migrations' | 'architecture' | 'comparison' | 'plan';
 
 const BackendReportsPage = () => {
   const navigate = useNavigate();
@@ -39,18 +38,16 @@ const BackendReportsPage = () => {
     console.log('✅ User Role Set:', userRole);
   }, []);
 
-  // 🔒 ROLE-BASED TAB VISIBILITY: Migration, Architecture, Comparison, Compliance tab'ları sadece admin ve master_admin için
+  // 🔒 ROLE-BASED TAB VISIBILITY: Migration, Architecture, Comparison, Plan tab'ları sadece admin ve master_admin için
   const showMigrationTab = ['admin', 'master_admin'].includes(userRole);
   const showArchitectureTab = ['admin', 'master_admin'].includes(userRole);
   const showComparisonTab = ['admin', 'master_admin'].includes(userRole);
-  const showComplianceTab = ['admin', 'master_admin'].includes(userRole);
   const showPlanTab = ['admin', 'master_admin'].includes(userRole);
   
   console.log('🎭 Current User Role:', userRole);
   console.log('📊 Show Migration Tab:', showMigrationTab);
   console.log('🏗️  Show Architecture Tab:', showArchitectureTab);
   console.log('📋 Show Comparison Tab:', showComparisonTab);
-  console.log('✅ Show Compliance Tab:', showComplianceTab);
   console.log('🎯 Show Plan Tab:', showPlanTab);
 
   return (
@@ -108,7 +105,7 @@ const BackendReportsPage = () => {
               </button>
             )}
 
-            {/* Mimari Sağlık - Sadece admin ve master_admin */}
+            {/* Mimari Uyumluluk - Sadece admin ve master_admin */}
             {showArchitectureTab && (
               <button
                 onClick={() => setActiveTab('architecture')}
@@ -119,7 +116,7 @@ const BackendReportsPage = () => {
                 }`}
               >
                 <Activity size={20} />
-                <span>🏗️ Mimari Sağlık</span>
+                <span>🏗️ Mimari Uyumluluk</span>
               </button>
             )}
 
@@ -135,21 +132,6 @@ const BackendReportsPage = () => {
               >
                 <GitCompare size={20} />
                 <span>📋 Tablo Karşılaştırma</span>
-              </button>
-            )}
-
-            {/* Endpoint Compliance - Sadece admin ve master_admin */}
-            {showComplianceTab && (
-              <button
-                onClick={() => setActiveTab('compliance')}
-                className={`flex items-center gap-2 px-6 py-4 font-medium transition-all ${
-                  activeTab === 'compliance'
-                    ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                }`}
-              >
-                <CheckCircle size={20} />
-                <span>📊 Endpoint Compliance</span>
               </button>
             )}
 
@@ -173,9 +155,8 @@ const BackendReportsPage = () => {
           <div className="p-6">
             {activeTab === 'tables' && <BackendTablesTab />}
             {activeTab === 'migrations' && showMigrationTab && <BackendMigrationsTab />}
-            {activeTab === 'architecture' && showArchitectureTab && <ArchitectureHealthTab />}
+            {activeTab === 'architecture' && showArchitectureTab && <ArchitectureComplianceTab />}
             {activeTab === 'comparison' && showComparisonTab && <TableComparisonTab />}
-            {activeTab === 'compliance' && showComplianceTab && <EndpointComplianceTab />}
             {activeTab === 'plan' && showPlanTab && <PlanComplianceTab />}
           </div>
         </div>
