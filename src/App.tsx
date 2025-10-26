@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { DatabaseProvider } from './context/DatabaseContext';
@@ -123,12 +122,6 @@ function App() {
             <Route path="/backend-reports" element={
               <AdminRoute>
                 <BackendReportsPage />
-              </AdminRoute>
-            } />
-            
-            <Route path="/project-structure" element={
-              <AdminRoute>
-                <ProjectStructurePage />
               </AdminRoute>
             } />
             
