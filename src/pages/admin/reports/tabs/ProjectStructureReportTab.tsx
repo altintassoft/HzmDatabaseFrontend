@@ -48,22 +48,45 @@ export default function ProjectStructureReportTab() {
         params: { type: 'project-structure' }
       });
 
+      // Check if response exists and has data
+      if (!response || !response.data) {
+        setError('Backend\'den yanıt alınamadı. Lütfen Railway deployment durumunu kontrol edin.');
+        return;
+      }
+
+      // Check for success
       if (!response.data.success) {
-        setError(response.data.message || 'Rapor yüklenemedi');
+        setError(response.data.message || response.data.error || 'Rapor yüklenemedi');
+        return;
+      }
+
+      // Check if all required fields exist
+      if (!response.data.content) {
+        setError('Rapor içeriği bulunamadı. DOSYA_ANALIZI.md dosyası eksik olabilir.');
         return;
       }
 
       setReportData({
-        type: response.data.type,
+        type: response.data.type || 'markdown',
         content: response.data.content,
-        reportPath: response.data.reportPath,
-        lastUpdated: response.data.lastUpdated,
-        note: response.data.note
+        reportPath: response.data.reportPath || 'Unknown',
+        lastUpdated: response.data.lastUpdated || new Date().toISOString(),
+        note: response.data.note || ''
       });
 
     } catch (err: any) {
       console.error('Failed to fetch project structure report:', err);
-      setError(err.response?.data?.message || 'Rapor yüklenirken hata oluştu');
+      
+      // Better error messages
+      if (err.response?.status === 404) {
+        setError('Backend endpoint bulunamadı (404). Railway deployment tamamlanmamış olabilir.');
+      } else if (err.response?.status === 500) {
+        setError(`Backend hatası: ${err.response?.data?.message || 'Internal Server Error'}`);
+      } else if (err.code === 'ECONNREFUSED') {
+        setError('Backend bağlantısı reddedildi. Railway servisi çalışmıyor olabilir.');
+      } else {
+        setError(err.response?.data?.message || err.message || 'Rapor yüklenirken hata oluştu');
+      }
     } finally {
       setLoading(false);
     }
