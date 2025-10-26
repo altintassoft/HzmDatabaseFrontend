@@ -5,23 +5,32 @@ import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import SocialMediaDisplay from './components/SocialMediaDisplay';
 import SEOHead from './components/SEOHead';
-import HomePage from './pages/HomePage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import DashboardPage from './pages/DashboardPage';
-import AdminPage from './pages/AdminPage';
+// Common Pages
+import HomePage from './pages/common/HomePage';
+import LoginPage from './pages/common/LoginPage';
+import RegisterPage from './pages/common/RegisterPage';
+
+// Customer Pages
+import DashboardPage from './pages/customer/DashboardPage';
+import ProjectList from './pages/customer/ProjectList';
+import ProjectManagement from './pages/customer/ProjectManagement';
+import ProjectDataView from './pages/customer/ProjectDataView';
+import DatabasePricing from './pages/customer/DatabasePricing';
+import UserSettingsPage from './pages/customer/UserSettingsPage';
+
+// Admin Pages
+import AdminPage from './pages/admin/AdminDashboard';
+import DatabaseUsers from './pages/admin/DatabaseUsers';
+import DatabaseProjects from './pages/admin/DatabaseProjects';
+import DatabaseState from './pages/admin/DatabaseState';
+import UpgradePlanPage from './pages/admin/UpgradePlanPage';
+import BackendReportsPage from './pages/admin/reports/BackendReportsPage';
+
+// Master Admin Pages
+import SystemSettingsPage from './pages/master-admin/SystemSettingsPage';
+
+// Layout
 import Layout from './components/Layout';
-import ProjectList from './pages/ProjectList';
-import ProjectManagement from './pages/ProjectManagement';
-import ProjectDataView from './pages/ProjectDataView';
-import DatabaseUsers from './pages/DatabaseUsers';
-import DatabaseProjects from './pages/DatabaseProjects';
-import DatabaseState from './pages/DatabaseState';
-import DatabasePricing from './pages/DatabasePricing';
-import UpgradePlanPage from './pages/UpgradePlanPage';
-import BackendReportsPage from './pages/BackendReportsPage';
-import UserSettingsPage from './pages/UserSettingsPage';
-import SystemSettingsPage from './pages/SystemSettingsPage';
 // CIO Module Import
 import { CIODashboard } from './modules/cio';
 import './App.css';

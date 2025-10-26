@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useDatabase } from '../context/DatabaseContext';
+import { useDatabase } from '../../context/DatabaseContext';
 import { ArrowLeft, Key, Settings, Database } from 'lucide-react';
-import TablePanel from '../components/panels/TablePanel';
-import FieldPanel from '../components/panels/FieldPanel';
-import ApiKeyDisplay from '../components/ApiKeyDisplay';
+import TablePanel from '../../components/panels/TablePanel';
+import FieldPanel from '../../components/panels/FieldPanel';
+import ApiKeyDisplay from '../../components/ApiKeyDisplay';
 
 const ProjectManagement = () => {
   const { projectId } = useParams();

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDatabase } from '../context/DatabaseContext';
+import { useDatabase } from '../../context/DatabaseContext';
 import { Database, LogOut, User, Plus, Eye, Settings, Shield, Server } from 'lucide-react';
 
 const DashboardPage = () => {

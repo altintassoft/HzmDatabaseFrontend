@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDatabase } from '../context/DatabaseContext';
+import { useDatabase } from '../../context/DatabaseContext';
 import { 
   Database, 
   ArrowLeft, 
@@ -17,7 +17,7 @@ import {
   EyeOff,
   Code
 } from 'lucide-react';
-import { ApiKeyGenerator } from '../utils/apiKeyGenerator';
+import { ApiKeyGenerator } from '../../utils/apiKeyGenerator';
 
 const ProjectList = () => {
   const { state, dispatch } = useDatabase();

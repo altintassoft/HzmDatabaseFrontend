@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Database, FileText, Activity, GitCompare, Target, FolderTree } from 'lucide-react';
-import BackendTablesTab from './BackendTablesTab';
-import MigrationSchemaTab from './MigrationSchemaTab';
-import ArchitectureComplianceTab from './ArchitectureComplianceTab';
-import { PlanComplianceTab } from './PlanComplianceTab';
-import ProjectStructureReportTab from './ProjectStructureReportTab';
+import BackendTablesTab from './tabs/BackendTablesTab';
+import MigrationSchemaTab from './tabs/MigrationSchemaTab';
+import ArchitectureComplianceTab from './tabs/ArchitectureComplianceTab';
+import { PlanComplianceTab } from './tabs/PlanComplianceTab';
+import ProjectStructureReportTab from './tabs/ProjectStructureReportTab';
 
 type TabType = 'tables' | 'migration-schema' | 'architecture' | 'plan' | 'project-structure';
 

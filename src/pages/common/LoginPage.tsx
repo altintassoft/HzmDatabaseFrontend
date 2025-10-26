@@ -1,48 +1,32 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useDatabase } from '../context/DatabaseContext';
-import { Database, UserPlus, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
+import { Database, LogIn, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import apiService from '../../services/api';
 
-const RegisterPage = () => {
+const LoginPage = () => {
   const navigate = useNavigate();
-  const { register } = useDatabase();
   const [formData, setFormData] = useState({
-    name: '',
     email: '',
     password: '',
-    confirmPassword: '',
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-
-    // Validation
-    if (formData.password !== formData.confirmPassword) {
-      setError('Şifreler eşleşmiyor');
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      setError('Şifre en az 6 karakter olmalıdır');
-      return;
-    }
-
     setIsLoading(true);
 
     try {
-      const success = await register(formData.email, formData.password, formData.name);
-      if (success) {
+      const response = await apiService.login(formData);
+      if (response.success) {
         navigate('/dashboard');
       } else {
-        setError('Bu e-posta adresi zaten kullanılıyor');
+        setError(response.error || 'E-posta veya şifre hatalı');
       }
     } catch (err) {
-      setError('Kayıt olurken bir hata oluştu');
+      setError('Giriş yapılırken bir hata oluştu');
     } finally {
       setIsLoading(false);
     }
@@ -67,10 +51,10 @@ const RegisterPage = () => {
               <span className="text-gray-600 text-sm">DataBase Pro</span>
             </div>
           </div>
-          <p className="text-gray-600">Yeni hesap oluşturun</p>
+          <p className="text-gray-600">Hesabınıza giriş yapın</p>
         </div>
 
-        {/* Register Form */}
+        {/* Login Form */}
         <div className="bg-white rounded-xl shadow-lg p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
@@ -79,22 +63,6 @@ const RegisterPage = () => {
                 <span className="text-red-700">{error}</span>
               </div>
             )}
-
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                Ad Soyad
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                placeholder="Adınız ve soyadınız"
-              />
-            </div>
 
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
@@ -125,7 +93,7 @@ const RegisterPage = () => {
                   onChange={handleChange}
                   required
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors pr-12"
-                  placeholder="En az 6 karakter"
+                  placeholder="Şifrenizi girin"
                 />
                 <button
                   type="button"
@@ -133,31 +101,6 @@ const RegisterPage = () => {
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                Şifre Tekrar
-              </label>
-              <div className="relative">
-                <input
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors pr-12"
-                  placeholder="Şifrenizi tekrar girin"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                >
-                  {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
             </div>
@@ -171,8 +114,8 @@ const RegisterPage = () => {
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
               ) : (
                 <>
-                  <UserPlus size={20} className="mr-2" />
-                  Kayıt Ol
+                  <LogIn size={20} className="mr-2" />
+                  Giriş Yap
                 </>
               )}
             </button>
@@ -180,9 +123,9 @@ const RegisterPage = () => {
 
           <div className="mt-6 text-center">
             <p className="text-gray-600">
-              Zaten hesabınız var mı?{' '}
-              <Link to="/login" className="text-blue-600 hover:text-blue-700 font-medium">
-                Giriş yapın
+              Hesabınız yok mu?{' '}
+              <Link to="/register" className="text-blue-600 hover:text-blue-700 font-medium">
+                Kayıt olun
               </Link>
             </p>
           </div>
@@ -205,4 +148,4 @@ const RegisterPage = () => {
   );
 };
 
-export default RegisterPage;
+export default LoginPage;

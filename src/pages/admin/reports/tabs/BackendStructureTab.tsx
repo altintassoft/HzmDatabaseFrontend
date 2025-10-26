@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Folder, File, ChevronRight, ChevronDown, Search, Filter } from 'lucide-react';
-import api from '../services/api';
+import api from '../../../../services/api';
 
 // ============================================================================
 // TYPES
