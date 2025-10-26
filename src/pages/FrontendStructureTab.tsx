@@ -172,17 +172,21 @@ export default function FrontendStructureTab() {
     try {
       setLoading(true);
       setError(null);
+      setData(null);
+      
       const response = await api.get('/admin/database', {
         params: { type: 'project-structure', target: 'frontend' }
       });
       
-      // Backend'den error dönmüş mü kontrol et
-      if (response.data.error) {
-        setError(response.data.message || response.data.error);
-        setData(response.data.data || null);
-      } else {
-        setData(response.data.data);
+      // Backend'den error dönmüş mü kontrol et (success: false veya error field var)
+      if (!response.data.success || response.data.error) {
+        setError(response.data.message || response.data.error || 'Beklenmeyen hata');
+        // data set etme - error state'de kalmalı
+        return;
       }
+      
+      // Başarılı response
+      setData(response.data.data);
     } catch (err: any) {
       console.error('Frontend structure fetch error:', err);
       setError(err.response?.data?.message || err.message || 'Veri yüklenemedi');
