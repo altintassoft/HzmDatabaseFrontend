@@ -317,28 +317,28 @@ export default function MigrationSchemaTab() {
         )}
 
         {/* COMPARISON TAB */}
-        {activeSubTab === 'comparison' && comparisonData && (
+        {activeSubTab === 'comparison' && comparisonData?.summary && (
           <div className="space-y-4">
             {/* Comparison Stats */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="text-2xl font-bold text-blue-900">{comparisonData.summary.totalExpected}</div>
+                <div className="text-2xl font-bold text-blue-900">{comparisonData.summary.totalExpected ?? 0}</div>
                 <div className="text-sm text-blue-700">Beklenen Tablo</div>
               </div>
               <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                <div className="text-2xl font-bold text-purple-900">{comparisonData.summary.totalActual}</div>
+                <div className="text-2xl font-bold text-purple-900">{comparisonData.summary.totalActual ?? 0}</div>
                 <div className="text-sm text-purple-700">Gerçek Tablo</div>
               </div>
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <div className="text-2xl font-bold text-green-900">{comparisonData.summary.matching}</div>
+                <div className="text-2xl font-bold text-green-900">{comparisonData.summary.matching ?? 0}</div>
                 <div className="text-sm text-green-700">Uyumlu</div>
               </div>
               <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <div className="text-2xl font-bold text-red-900">{comparisonData.summary.missing}</div>
+                <div className="text-2xl font-bold text-red-900">{comparisonData.summary.missing ?? 0}</div>
                 <div className="text-sm text-red-700">Eksik</div>
               </div>
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <div className="text-2xl font-bold text-yellow-900">{comparisonData.summary.extra}</div>
+                <div className="text-2xl font-bold text-yellow-900">{comparisonData.summary.extra ?? 0}</div>
                 <div className="text-sm text-yellow-700">Fazla</div>
               </div>
             </div>
@@ -362,7 +362,7 @@ export default function MigrationSchemaTab() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {comparisonData.tables.map((table, idx) => (
+                    {comparisonData.tables?.map((table, idx) => (
                       <tr key={idx} className="hover:bg-gray-50">
                         <td className="px-4 py-3">
                           <span className="inline-block px-2 py-1 rounded text-xs font-mono bg-gray-100 text-gray-700">
