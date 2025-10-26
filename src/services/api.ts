@@ -133,9 +133,16 @@ class ApiService {
   }
 
   // Generic GET method for authenticated requests
-  async get(endpoint: string): Promise<any> {
+  async get(endpoint: string, options?: { params?: Record<string, string> }): Promise<any> {
     try {
-      const response = await fetch(`${API_URL}${endpoint}`, {
+      // Build URL with query parameters
+      let url = `${API_URL}${endpoint}`;
+      if (options?.params) {
+        const queryString = new URLSearchParams(options.params).toString();
+        url += `?${queryString}`;
+      }
+
+      const response = await fetch(url, {
         method: 'GET',
         headers: this.getHeaders(),
         credentials: 'include',
