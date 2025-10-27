@@ -76,7 +76,7 @@ function parseFrontendFiles(markdown: string): FileInfo[] {
   return files;
 }
 
-function buildDirectoryTree(files: FileInfo[]): DirectoryNode {
+function buildDirectoryTree(files: FileInfo[], expandAll: boolean = false): DirectoryNode {
   const root: DirectoryNode = {
     name: 'Frontend',
     type: 'folder',
@@ -84,14 +84,29 @@ function buildDirectoryTree(files: FileInfo[]): DirectoryNode {
     expanded: true
   };
   
+  // Expanded olması gereken path'leri topla
+  const pathsToExpand = new Set<string>();
+  if (expandAll) {
+    files.forEach(file => {
+      const parts = file.path.split('/');
+      let currentPath = '';
+      for (let i = 0; i < parts.length - 1; i++) {
+        currentPath += (currentPath ? '/' : '') + parts[i];
+        pathsToExpand.add(currentPath);
+      }
+    });
+  }
+  
   files.forEach(file => {
     // Path'i parçala: Frontend/src/context/DatabaseContext.tsx -> ['Frontend', 'src', 'context', 'DatabaseContext.tsx']
     const parts = file.path.split('/');
     let currentNode = root;
+    let currentPath = parts[0];
     
     // İlk 'Frontend' kısmını atla
     for (let i = 1; i < parts.length - 1; i++) {
       const part = parts[i];
+      currentPath += '/' + part;
       let childNode = currentNode.children?.find(c => c.name === part);
       
       if (!childNode) {
@@ -99,10 +114,12 @@ function buildDirectoryTree(files: FileInfo[]): DirectoryNode {
           name: part,
           type: 'folder',
           children: [],
-          expanded: false
+          expanded: expandAll || pathsToExpand.has(currentPath)
         };
         if (!currentNode.children) currentNode.children = [];
         currentNode.children.push(childNode);
+      } else if (expandAll || pathsToExpand.has(currentPath)) {
+        childNode.expanded = true;
       }
       
       currentNode = childNode;
@@ -196,22 +213,30 @@ function DirectoryNodeComponent({ node, level = 0 }: { node: DirectoryNode; leve
 // ============================================================================
 
 export default function FrontendStructureTab({ markdownContent }: FrontendStructureTabProps) {
-  const files = parseFrontendFiles(markdownContent);
-  const tree = buildDirectoryTree(files);
+  const [filter, setFilter] = useState<FileInfo['status'] | 'all'>('all');
   
-  // Statistics
+  const allFiles = parseFrontendFiles(markdownContent);
+  
+  // Filter files based on selected filter
+  const filteredFiles = filter === 'all' 
+    ? allFiles 
+    : allFiles.filter(f => f.status === filter);
+  
+  const tree = buildDirectoryTree(filteredFiles, filter !== 'all');
+  
+  // Statistics (from all files, not filtered)
   const stats = {
-    total: files.length,
-    critical: files.filter(f => f.status === 'critical').length,
-    urgent: files.filter(f => f.status === 'urgent').length,
-    danger: files.filter(f => f.status === 'danger').length,
-    warning: files.filter(f => f.status === 'warning').length,
-    good: files.filter(f => f.status === 'good').length,
-    totalLines: files.reduce((sum, f) => sum + f.lines, 0),
-    avgLines: Math.round(files.reduce((sum, f) => sum + f.lines, 0) / files.length)
+    total: allFiles.length,
+    critical: allFiles.filter(f => f.status === 'critical').length,
+    urgent: allFiles.filter(f => f.status === 'urgent').length,
+    danger: allFiles.filter(f => f.status === 'danger').length,
+    warning: allFiles.filter(f => f.status === 'warning').length,
+    good: allFiles.filter(f => f.status === 'good').length,
+    totalLines: allFiles.reduce((sum, f) => sum + f.lines, 0),
+    avgLines: Math.round(allFiles.reduce((sum, f) => sum + f.lines, 0) / allFiles.length)
   };
   
-  if (files.length === 0) {
+  if (allFiles.length === 0) {
     return (
       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
         <div className="flex items-start gap-3">
@@ -250,39 +275,84 @@ export default function FrontendStructureTab({ markdownContent }: FrontendStruct
         </div>
       </div>
       
-      {/* Status Distribution */}
+      {/* Status Distribution - Clickable Filters */}
       <div className="bg-white border border-gray-200 rounded-lg p-4">
-        <h3 className="font-semibold text-gray-900 mb-3">Durum Dağılımı</h3>
-        <div className="flex gap-4 flex-wrap">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-semibold text-gray-900">Durum Dağılımı</h3>
+          {filter !== 'all' && (
+            <button
+              onClick={() => setFilter('all')}
+              className="text-sm text-blue-600 hover:text-blue-800 font-medium underline"
+            >
+              Tümünü Göster
+            </button>
+          )}
+        </div>
+        <div className="flex gap-3 flex-wrap">
           {stats.critical > 0 && (
-            <div className="flex items-center gap-2">
+            <button
+              onClick={() => setFilter(filter === 'critical' ? 'all' : 'critical')}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
+                filter === 'critical'
+                  ? 'border-red-300 bg-red-100 text-red-900 ring-2 ring-red-300'
+                  : 'border-gray-200 bg-white hover:bg-red-50 text-gray-700'
+              }`}
+            >
               <span className="text-red-900">🔴🔴🔴</span>
-              <span className="text-sm text-gray-700">Kritik: <strong>{stats.critical}</strong></span>
-            </div>
+              <span className="text-sm font-medium">Kritik: <strong>{stats.critical}</strong></span>
+            </button>
           )}
           {stats.urgent > 0 && (
-            <div className="flex items-center gap-2">
+            <button
+              onClick={() => setFilter(filter === 'urgent' ? 'all' : 'urgent')}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
+                filter === 'urgent'
+                  ? 'border-red-200 bg-red-50 text-red-700 ring-2 ring-red-200'
+                  : 'border-gray-200 bg-white hover:bg-red-50 text-gray-700'
+              }`}
+            >
               <span className="text-red-700">🔴🔴</span>
-              <span className="text-sm text-gray-700">Acil: <strong>{stats.urgent}</strong></span>
-            </div>
+              <span className="text-sm font-medium">Acil: <strong>{stats.urgent}</strong></span>
+            </button>
           )}
           {stats.danger > 0 && (
-            <div className="flex items-center gap-2">
+            <button
+              onClick={() => setFilter(filter === 'danger' ? 'all' : 'danger')}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
+                filter === 'danger'
+                  ? 'border-orange-200 bg-orange-50 text-orange-700 ring-2 ring-orange-200'
+                  : 'border-gray-200 bg-white hover:bg-orange-50 text-gray-700'
+              }`}
+            >
               <span className="text-orange-600">🔴</span>
-              <span className="text-sm text-gray-700">Bölünmeli: <strong>{stats.danger}</strong></span>
-            </div>
+              <span className="text-sm font-medium">Bölünmeli: <strong>{stats.danger}</strong></span>
+            </button>
           )}
           {stats.warning > 0 && (
-            <div className="flex items-center gap-2">
+            <button
+              onClick={() => setFilter(filter === 'warning' ? 'all' : 'warning')}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
+                filter === 'warning'
+                  ? 'border-yellow-200 bg-yellow-50 text-yellow-700 ring-2 ring-yellow-200'
+                  : 'border-gray-200 bg-white hover:bg-yellow-50 text-gray-700'
+              }`}
+            >
               <span className="text-yellow-600">⚠️</span>
-              <span className="text-sm text-gray-700">Dikkat: <strong>{stats.warning}</strong></span>
-            </div>
+              <span className="text-sm font-medium">Dikkat: <strong>{stats.warning}</strong></span>
+            </button>
           )}
           {stats.good > 0 && (
-            <div className="flex items-center gap-2">
+            <button
+              onClick={() => setFilter(filter === 'good' ? 'all' : 'good')}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
+                filter === 'good'
+                  ? 'border-green-200 bg-green-50 text-green-700 ring-2 ring-green-200'
+                  : 'border-gray-200 bg-white hover:bg-green-50 text-gray-700'
+              }`}
+            >
               <span className="text-green-600">✅</span>
-              <span className="text-sm text-gray-700">İyi: <strong>{stats.good}</strong></span>
-            </div>
+              <span className="text-sm font-medium">İyi: <strong>{stats.good}</strong></span>
+            </button>
           )}
         </div>
       </div>
