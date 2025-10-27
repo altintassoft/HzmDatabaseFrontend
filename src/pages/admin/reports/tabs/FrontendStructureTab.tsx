@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChevronRight, ChevronDown, File, Folder, AlertCircle } from 'lucide-react';
 
 // ============================================================================
@@ -158,6 +158,11 @@ function getStatusBadge(status: FileInfo['status'], lines: number) {
 
 function DirectoryNodeComponent({ node, level = 0 }: { node: DirectoryNode; level?: number }) {
   const [expanded, setExpanded] = useState(node.expanded || false);
+  
+  // ✅ FIX: node.expanded değişince local state'i güncelle
+  useEffect(() => {
+    setExpanded(node.expanded || false);
+  }, [node.expanded]);
   
   const hasChildren = (node.children && node.children.length > 0) || (node.files && node.files.length > 0);
   
