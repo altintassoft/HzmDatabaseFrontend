@@ -12,11 +12,13 @@ import RegisterPage from './pages/common/RegisterPage';
 
 // Customer Pages
 import DashboardPage from './pages/customer/DashboardPage';
-import ProjectList from './pages/customer/ProjectList';
-import ProjectManagement from './pages/customer/ProjectManagement';
-import ProjectDataView from './pages/customer/ProjectDataView';
 import DatabasePricing from './pages/customer/DatabasePricing';
 import UserSettingsPage from './pages/customer/UserSettingsPage';
+
+// Project Pages
+import ProjectsListPage from './pages/projects/ProjectsListPage';
+import ProjectDetailPage from './pages/projects/ProjectDetailPage';
+import ProjectDataPage from './pages/projects/ProjectDataPage';
 
 // Admin Pages
 import AdminPage from './pages/admin/AdminDashboard';
@@ -194,19 +196,19 @@ function App() {
             
             <Route path="/projects" element={
               <ProtectedRoute>
-                <ProjectList />
+                <ProjectsListPage />
               </ProtectedRoute>
             } />
             
             <Route path="/projects/:projectId" element={
               <ProtectedRoute>
-                <ProjectManagement />
+                <ProjectDetailPage />
               </ProtectedRoute>
             } />
             
             <Route path="/projects/:projectId/data" element={
               <ProtectedRoute>
-                <ProjectDataView />
+                <ProjectDataPage />
               </ProtectedRoute>
             } />
             
