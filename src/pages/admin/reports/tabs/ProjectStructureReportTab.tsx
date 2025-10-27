@@ -44,34 +44,34 @@ export default function ProjectStructureReportTab() {
     setError(null);
 
     try {
-      const response = await api.get('/admin/database', {
+      const data = await api.get('/admin/database', {
         params: { type: 'project-structure' }
       });
 
-      // Check if response exists and has data
-      if (!response || !response.data) {
+      // Check if response exists
+      if (!data) {
         setError('Backend\'den yanıt alınamadı. Lütfen Railway deployment durumunu kontrol edin.');
         return;
       }
 
       // Check for success
-      if (!response.data.success) {
-        setError(response.data.message || response.data.error || 'Rapor yüklenemedi');
+      if (!data.success) {
+        setError(data.message || data.error || 'Rapor yüklenemedi');
         return;
       }
 
       // Check if all required fields exist
-      if (!response.data.content) {
+      if (!data.content) {
         setError('Rapor içeriği bulunamadı. DOSYA_ANALIZI.md dosyası eksik olabilir.');
         return;
       }
 
       setReportData({
-        type: response.data.type || 'markdown',
-        content: response.data.content,
-        reportPath: response.data.reportPath || 'Unknown',
-        lastUpdated: response.data.lastUpdated || new Date().toISOString(),
-        note: response.data.note || ''
+        type: data.type || 'markdown',
+        content: data.content,
+        reportPath: data.reportPath || 'Unknown',
+        lastUpdated: data.lastUpdated || new Date().toISOString(),
+        note: data.note || ''
       });
 
     } catch (err: any) {
