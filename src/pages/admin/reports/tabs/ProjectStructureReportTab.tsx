@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
-import { FileText, RefreshCw, AlertCircle, Clock } from 'lucide-react';
+import { FileText, RefreshCw, AlertCircle, Clock, Server, Monitor } from 'lucide-react';
 import api from '../../../../services/api';
+import BackendStructureTab from './BackendStructureTab';
+import FrontendStructureTab from './FrontendStructureTab';
 
 // ============================================================================
 // INTERFACES
@@ -14,23 +16,14 @@ interface ReportData {
   note: string;
 }
 
-interface ApiResponse {
-  success: boolean;
-  type: string;
-  timestamp: string;
-  content: string;
-  reportPath: string;
-  lastUpdated: string;
-  note: string;
-  error?: string;
-  message?: string;
-}
+type TabType = 'backend' | 'frontend';
 
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
 
 export default function ProjectStructureReportTab() {
+  const [activeTab, setActiveTab] = useState<TabType>('backend');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reportData, setReportData] = useState<ReportData | null>(null);
@@ -144,7 +137,7 @@ export default function ProjectStructureReportTab() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">📊 Dosya Analiz Raporu</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">📊 Proje Yapısı Raporu</h2>
           <p className="text-gray-600">Frontend & Backend - Otomatik Dosya Boyutu Analizi</p>
         </div>
         <button
@@ -173,13 +166,44 @@ export default function ProjectStructureReportTab() {
         </div>
       </div>
 
-      {/* Markdown Content */}
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-        <div className="p-6 prose prose-sm max-w-none">
-          <pre className="whitespace-pre-wrap font-mono text-xs bg-gray-50 p-4 rounded-lg overflow-x-auto">
-            {reportData?.content}
-          </pre>
+      {/* Tabs */}
+      <div className="border-b border-gray-200">
+        <div className="flex gap-4">
+          <button
+            onClick={() => setActiveTab('backend')}
+            className={`flex items-center gap-2 px-4 py-3 border-b-2 font-medium transition-colors ${
+              activeTab === 'backend'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <Server size={18} />
+            <span>Backend</span>
+          </button>
+          
+          <button
+            onClick={() => setActiveTab('frontend')}
+            className={`flex items-center gap-2 px-4 py-3 border-b-2 font-medium transition-colors ${
+              activeTab === 'frontend'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <Monitor size={18} />
+            <span>Frontend</span>
+          </button>
         </div>
+      </div>
+
+      {/* Tab Content */}
+      <div>
+        {activeTab === 'backend' && reportData && (
+          <BackendStructureTab markdownContent={reportData.content} />
+        )}
+        
+        {activeTab === 'frontend' && reportData && (
+          <FrontendStructureTab markdownContent={reportData.content} />
+        )}
       </div>
     </div>
   );
