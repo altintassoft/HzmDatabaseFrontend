@@ -34,7 +34,7 @@ import SystemSettingsPage from './pages/master-admin/SystemSettingsPage';
 // Layout
 import Layout from './components/Layout';
 // CIO Module Import
-import { CIODashboard } from './modules/cio';
+import { CIODashboard } from './pages/cio';
 import './App.css';
 
 // Mock sosyal medya linkleri - gerçek uygulamada bu veriler state management'ten gelecek
