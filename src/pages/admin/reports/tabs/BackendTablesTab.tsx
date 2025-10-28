@@ -34,7 +34,7 @@ interface TableData {
   data: any[];
 }
 
-const BackendTablesPage = () => {
+const BackendTablesTab = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [schemaFilter, setSchemaFilter] = useState<string>('all');
@@ -784,5 +784,5 @@ const BackendTablesPage = () => {
   );
 };
 
-export default BackendTablesPage;
+export default BackendTablesTab;
 
