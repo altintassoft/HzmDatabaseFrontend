@@ -409,7 +409,66 @@ export default function BackendStructureTab({ markdownContent }: BackendStructur
                 
                 let treeText = 'Backend Dosya Yapısı\n';
                 treeText += '='.repeat(50) + '\n\n';
-                treeText += generateTreeText(tree);
+                
+                // Root'tan başla
+                treeText += '└── Backend/\n';
+                
+                // Kök dosyalar
+                treeText += '    ├── package.json\n';
+                treeText += '    ├── railway.toml\n';
+                treeText += '    ├── docker-compose.yml\n';
+                treeText += '    ├── Dockerfile\n';
+                treeText += '    ├── BackendDuzenle.md\n';
+                treeText += '    ├── README.md\n';
+                treeText += '    ├── API_AUTHENTICATION.md\n';
+                treeText += '    ├── DATABASE_OPERATIONS.md\n';
+                
+                // docs/ klasörünü manuel ekle (markdown dosyaları analiz edilmediği için)
+                treeText += '    ├── docs/\n';
+                treeText += '    │   ├── api-integration/\n';
+                treeText += '    │   │   ├── README.md\n';
+                treeText += '    │   │   ├── authentication/\n';
+                treeText += '    │   │   │   ├── README.md\n';
+                treeText += '    │   │   │   └── README_BACKUP_20251024.md\n';
+                treeText += '    │   │   ├── endpoints/\n';
+                treeText += '    │   │   │   └── README.md\n';
+                treeText += '    │   │   ├── examples/\n';
+                treeText += '    │   │   │   └── README.md\n';
+                treeText += '    │   │   └── security/\n';
+                treeText += '    │   │       └── README.md\n';
+                treeText += '    │   └── roadmap/\n';
+                treeText += '    │       ├── README.md\n';
+                treeText += '    │       ├── BACKEND_PHASE_PLAN.md\n';
+                treeText += '    │       ├── DOSYA_ANALIZI.md\n';
+                treeText += '    │       ├── DOKUMAN_TUTARLILIK_RAPORU.md\n';
+                treeText += '    │       ├── EKSIKLER_VE_ZAYIF_YONLER.md\n';
+                treeText += '    │       ├── QUALITY_REPORT.txt\n';
+                treeText += '    │       ├── SMART_ENDPOINT_STRATEGY_V2.md\n';
+                treeText += '    │       ├── TABLOLAR.md\n';
+                treeText += '    │       ├── 01-Database-Core/ (4 .md)\n';
+                treeText += '    │       ├── 02-Business-Features/ (5 .md)\n';
+                treeText += '    │       ├── 03-Security/ (4 .md)\n';
+                treeText += '    │       ├── 04-Infrastructure/ (9 .md)\n';
+                treeText += '    │       ├── 05-APIs/ (3 .md)\n';
+                treeText += '    │       ├── 06-Localization/ (1 .md)\n';
+                treeText += '    │       ├── 07-Advanced-Features/ (2 .md)\n';
+                treeText += '    │       ├── 08-Implementation-Guides/ (4 .md)\n';
+                treeText += '    │       ├── 09-Oneriler/ (2 .md)\n';
+                treeText += '    │       ├── 10-Frontend-Development/ (3 .md)\n';
+                treeText += '    │       ├── 11-Testing/ (1 .md)\n';
+                treeText += '    │       ├── 12-Deployment/ (1 .md)\n';
+                treeText += '    │       ├── 13-API-Documentation/ (1 .md)\n';
+                treeText += '    │       ├── 14-Email-Templates/ (1 .md)\n';
+                treeText += '    │       ├── 15-Database-Migrations/ (2 .md)\n';
+                treeText += '    │       └── 16-Platform-Independence/ (1 .md)\n';
+                
+                // Kod dosyalarını ekle (tree'den)
+                if (tree.children && tree.children.length > 0) {
+                  tree.children.forEach((child, idx) => {
+                    const isLast = idx === tree.children!.length - 1;
+                    treeText += generateTreeText(child, '    ', isLast);
+                  });
+                }
                 
                 // Copy to clipboard
                 navigator.clipboard.writeText(treeText).then(() => {
