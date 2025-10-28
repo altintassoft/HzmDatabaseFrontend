@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDatabase } from '../../context/DatabaseContext';
+import { useDatabase } from '../../../context/DatabaseContext';
 import { 
   DollarSign, 
   ArrowLeft, 

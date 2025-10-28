@@ -8,15 +8,16 @@ import {
   Copy, 
   Check, 
   Eye, 
-  EyeOff,
+  EyeOff, 
   Shield,
-  Clock,
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
+  Crown
 } from 'lucide-react';
-import ConfirmModal from '../../components/ConfirmModal';
+import ConfirmModal from '../../../components/ConfirmModal';
 
-interface ApiKeyData {
+interface MasterAdminData {
   email: string;
+  role: string;
   apiKey: string | null;
   apiPassword: string | null;
   hasApiKey: boolean;
@@ -24,10 +25,10 @@ interface ApiKeyData {
   lastUsedAt: string | null;
 }
 
-const UserSettingsPage = () => {
+const SystemSettingsPage = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [apiKeyData, setApiKeyData] = useState<ApiKeyData | null>(null);
+  const [masterAdminData, setMasterAdminData] = useState<MasterAdminData | null>(null);
   const [error, setError] = useState<string | null>(null);
   
   // Copy states
@@ -42,79 +43,62 @@ const UserSettingsPage = () => {
   const [generating, setGenerating] = useState(false);
   const [regeneratingKey, setRegeneratingKey] = useState(false);
   const [regeneratingPassword, setRegeneratingPassword] = useState(false);
-  const [revoking, setRevoking] = useState(false);
   
   // Modal states
   const [showRegenerateKeyModal, setShowRegenerateKeyModal] = useState(false);
   const [showRegeneratePasswordModal, setShowRegeneratePasswordModal] = useState(false);
-  const [showRevokeModal, setShowRevokeModal] = useState(false);
 
-  // Get current user email from sessionStorage
-  const currentUser = JSON.parse(sessionStorage.getItem('user') || '{}');
-  const userEmail = currentUser.email || 'ozgurhzm@gmail.com';
-
-  useEffect(() => {
-    fetchApiKeyData();
-  }, []);
-
-  // Auto-generate API key if user doesn't have one
-  useEffect(() => {
-    if (apiKeyData && !apiKeyData.hasApiKey && !generating && !newApiPassword) {
-      // Automatically generate API credentials on first load
-      handleGenerate();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiKeyData?.hasApiKey]);
-
-  const fetchApiKeyData = async () => {
-    setLoading(true);
-    setError(null);
+  // Fetch Master Admin API Key data
+  const fetchMasterAdminData = async () => {
     try {
       const API_URL = import.meta.env.VITE_API_URL || '/api/v1';
-      const response = await fetch(`${API_URL}/api-keys/me?email=${userEmail}`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch API key data');
-      }
+      const response = await fetch(`${API_URL}/api-keys/master-admin`);
       
       const result = await response.json();
+      
       if (result.success) {
-        setApiKeyData(result.data);
+        setMasterAdminData(result.data);
       } else {
         setError(result.error);
       }
     } catch (err) {
-      console.error('Error fetching API key:', err);
+      console.error('Error fetching master admin data:', err);
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGenerate = async () => {
-    if (!confirm('Yeni API kimlik bilgileri oluşturulacak. Devam etmek istiyor musunuz?')) {
-      return;
-    }
+  useEffect(() => {
+    fetchMasterAdminData();
+  }, []);
 
+  // Auto-generate if no API key exists
+  useEffect(() => {
+    if (!loading && masterAdminData && !masterAdminData.hasApiKey && !generating) {
+      handleGenerate();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, masterAdminData]);
+
+  const handleGenerate = async () => {
     setGenerating(true);
     setError(null);
     try {
       const API_URL = import.meta.env.VITE_API_URL || '/api/v1';
-      const response = await fetch(`${API_URL}/api-keys/generate?email=${userEmail}`, {
+      const response = await fetch(`${API_URL}/api-keys/master-admin/generate`, {
         method: 'POST'
       });
       
       const result = await response.json();
       
       if (result.success) {
-        setNewApiPassword(result.data.apiPassword);
-        setShowWarning(true);
-        await fetchApiKeyData();
+        await fetchMasterAdminData();
       } else {
         setError(result.error);
       }
     } catch (err) {
-      console.error('Error generating API key:', err);
+      console.error('Error generating master admin key:', err);
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setGenerating(false);
@@ -126,20 +110,20 @@ const UserSettingsPage = () => {
     setError(null);
     try {
       const API_URL = import.meta.env.VITE_API_URL || '/api/v1';
-      const response = await fetch(`${API_URL}/api-keys/regenerate?email=${userEmail}`, {
+      const response = await fetch(`${API_URL}/api-keys/master-admin/regenerate`, {
         method: 'POST'
       });
       
       const result = await response.json();
       
       if (result.success) {
-        await fetchApiKeyData();
+        await fetchMasterAdminData();
         setShowRegenerateKeyModal(false);
       } else {
         setError(result.error);
       }
     } catch (err) {
-      console.error('Error regenerating API key:', err);
+      console.error('Error regenerating master admin key:', err);
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setRegeneratingKey(false);
@@ -151,7 +135,7 @@ const UserSettingsPage = () => {
     setError(null);
     try {
       const API_URL = import.meta.env.VITE_API_URL || '/api/v1';
-      const response = await fetch(`${API_URL}/api-keys/regenerate-password?email=${userEmail}`, {
+      const response = await fetch(`${API_URL}/api-keys/master-admin/regenerate-password`, {
         method: 'POST'
       });
       
@@ -159,41 +143,15 @@ const UserSettingsPage = () => {
       
       if (result.success) {
         setShowRegeneratePasswordModal(false);
-        await fetchApiKeyData();
-        // Password artık sayfada görünecek, modal'a gerek yok
+        await fetchMasterAdminData();
       } else {
         setError(result.error);
       }
     } catch (err) {
-      console.error('Error regenerating password:', err);
+      console.error('Error regenerating master admin password:', err);
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setRegeneratingPassword(false);
-    }
-  };
-
-  const handleRevoke = async () => {
-    setRevoking(true);
-    setError(null);
-    try {
-      const API_URL = import.meta.env.VITE_API_URL || '/api/v1';
-      const response = await fetch(`${API_URL}/api-keys/revoke?email=${userEmail}`, {
-        method: 'DELETE'
-      });
-      
-      const result = await response.json();
-      
-      if (result.success) {
-        setShowRevokeModal(false);
-        await fetchApiKeyData();
-      } else {
-        setError(result.error);
-      }
-    } catch (err) {
-      console.error('Error revoking API key:', err);
-      setError(err instanceof Error ? err.message : 'Unknown error');
-    } finally {
-      setRevoking(false);
     }
   };
 
@@ -215,66 +173,79 @@ const UserSettingsPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center py-12">
-            <RefreshCw className="mx-auto text-blue-600 mb-4 animate-spin" size={48} />
-            <p className="text-gray-600 font-semibold">Ayarlar yükleniyor...</p>
-          </div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <RefreshCw className="mx-auto text-blue-600 mb-4 animate-spin" size={48} />
+          <p className="text-gray-600">Yükleniyor...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-3xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="p-2 hover:bg-white rounded-lg transition-colors"
-            >
-              <ArrowLeft size={20} />
-            </button>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">API Ayarları</h1>
-              <p className="text-sm text-gray-600">Programatik erişim için API kimlik bilgileri</p>
+    <div className="min-h-screen bg-slate-50">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => navigate('/admin')}
+                className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <ArrowLeft size={20} className="mr-2" />
+                Geri
+              </button>
+              <div className="flex items-center space-x-3">
+                <SettingsIcon className="text-purple-600" size={32} />
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-800">Sistem Ayarları</h1>
+                  <p className="text-sm text-gray-600">Master Admin API Yönetimi</p>
+                </div>
+              </div>
             </div>
           </div>
-          <Shield className="text-blue-600" size={32} />
         </div>
+      </header>
 
-        {/* Error Message */}
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-8 max-w-4xl">
+        {/* Error Display */}
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
             <p className="text-red-800 font-semibold">⚠️ Hata: {error}</p>
           </div>
         )}
 
-        {/* Compact API Settings Card */}
-        <div className="bg-white rounded-lg shadow-md p-5">
-          {/* Email Section */}
-          <div className="mb-5 pb-5 border-b">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Mail className="text-blue-600" size={18} />
-                <span className="text-sm font-semibold text-gray-700">E-posta</span>
-              </div>
-              <button
-                onClick={() => navigate('/dashboard')}
-                className="text-xs text-blue-600 hover:text-blue-700 underline"
-              >
-                Değiştir
-              </button>
+        {/* Master Admin API Settings Card */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="flex items-center gap-3 mb-6 pb-4 border-b">
+            <div className="p-3 bg-purple-100 rounded-lg">
+              <Crown className="text-purple-600" size={28} />
             </div>
-            <p className="font-mono text-sm text-gray-900 mt-2">{apiKeyData?.email}</p>
+            <div>
+              <h2 className="text-xl font-bold text-gray-800">Master Admin API</h2>
+              <p className="text-sm text-gray-600">Sistem genelinde yetkili API kimlik bilgileri</p>
+            </div>
+          </div>
+
+          {/* Email Section */}
+          <div className="mb-6 pb-6 border-b">
+            <div className="flex items-center gap-2 mb-2">
+              <Mail className="text-blue-600" size={18} />
+              <span className="text-sm font-semibold text-gray-700">Master Admin Email</span>
+            </div>
+            <p className="font-mono text-sm text-gray-900 ml-6">
+              {masterAdminData?.email || 'ozgurhzm@hzmsoft.com'}
+            </p>
+            <p className="text-xs text-gray-500 ml-6 mt-1">
+              Role: <span className="font-semibold text-purple-600">{masterAdminData?.role || 'master_admin'}</span>
+            </p>
           </div>
 
           {/* API Credentials */}
-          {apiKeyData?.hasApiKey ? (
-            <div className="space-y-4">
+          {masterAdminData?.hasApiKey ? (
+            <div className="space-y-6">
               {/* API Key Row */}
               <div>
                 <div className="flex items-center justify-between mb-2">
@@ -288,7 +259,7 @@ const UserSettingsPage = () => {
                       {showApiKey ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                     <button
-                      onClick={() => copyToClipboard(apiKeyData.apiKey!, 'key')}
+                      onClick={() => copyToClipboard(masterAdminData.apiKey!, 'key')}
                       className="p-1.5 hover:bg-gray-100 rounded text-gray-600"
                       title="Kopyala"
                     >
@@ -304,9 +275,9 @@ const UserSettingsPage = () => {
                     </button>
                   </div>
                 </div>
-                <div className="bg-gray-50 border border-gray-300 rounded p-2 font-mono text-xs">
+                <div className="bg-gray-50 border border-gray-300 rounded p-3 font-mono text-sm">
                   <span className={showApiKey ? '' : 'blur-sm select-none'}>
-                    {apiKeyData.apiKey}
+                    {masterAdminData.apiKey}
                   </span>
                 </div>
               </div>
@@ -324,7 +295,7 @@ const UserSettingsPage = () => {
                       {showApiPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                     <button
-                      onClick={() => copyToClipboard(apiKeyData.apiPassword!, 'password')}
+                      onClick={() => copyToClipboard(masterAdminData.apiPassword!, 'password')}
                       className="p-1.5 hover:bg-gray-100 rounded text-gray-600"
                       title="Kopyala"
                     >
@@ -340,52 +311,62 @@ const UserSettingsPage = () => {
                     </button>
                   </div>
                 </div>
-                <div className="bg-gray-50 border border-gray-300 rounded p-2 font-mono text-xs">
+                <div className="bg-gray-50 border border-gray-300 rounded p-3 font-mono text-sm">
                   <span className={showApiPassword ? '' : 'blur-sm select-none'}>
-                    {apiKeyData.apiPassword}
+                    {masterAdminData.apiPassword}
                   </span>
                 </div>
               </div>
 
               {/* Timestamps */}
-              <div className="grid grid-cols-2 gap-3 pt-3 border-t">
+              <div className="grid grid-cols-2 gap-4 pt-4 border-t">
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">Oluşturulma</p>
-                  <p className="font-mono text-xs text-gray-700">{formatDate(apiKeyData.createdAt)}</p>
+                  <p className="text-xs text-gray-500 mb-1 flex items-center gap-1">
+                    <Shield size={12} />
+                    Oluşturulma
+                  </p>
+                  <p className="font-mono text-xs text-gray-700">{formatDate(masterAdminData.createdAt)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">Son Kullanım</p>
-                  <p className="font-mono text-xs text-gray-700">{formatDate(apiKeyData.lastUsedAt)}</p>
+                  <p className="text-xs text-gray-500 mb-1 flex items-center gap-1">
+                    <Key size={12} />
+                    Son Kullanım
+                  </p>
+                  <p className="font-mono text-xs text-gray-700">{formatDate(masterAdminData.lastUsedAt)}</p>
                 </div>
               </div>
-
-              {/* Revoke Button */}
-              <button
-                onClick={() => setShowRevokeModal(true)}
-                disabled={revoking}
-                className="w-full mt-3 px-3 py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700 disabled:bg-gray-400 transition-colors"
-              >
-                ❌ API Erişimini İptal Et
-              </button>
             </div>
           ) : (
-            <div className="text-center py-6">
-              <Key className="mx-auto text-gray-400 mb-3" size={40} />
-              <p className="text-gray-600 mb-3 text-sm">API kimlik bilgileri oluşturuluyor...</p>
-              {generating && <RefreshCw className="mx-auto text-blue-600 animate-spin" size={24} />}
+            <div className="text-center py-8">
+              <Crown className="mx-auto text-gray-400 mb-3" size={40} />
+              <p className="text-gray-600 mb-3 text-sm">Master Admin API kimlik bilgileri oluşturuluyor...</p>
+              {generating && <RefreshCw className="mx-auto text-purple-600 animate-spin" size={24} />}
             </div>
           )}
-        </div>
 
-      </div>
+          {/* Info Box */}
+          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mt-6">
+            <h3 className="font-semibold text-purple-900 mb-2 text-sm flex items-center gap-2">
+              <Shield size={16} />
+              Master Admin Yetkisi
+            </h3>
+            <ul className="text-xs text-purple-800 space-y-1 list-disc list-inside">
+              <li>Bu API Key sistem genelinde tam yetkiye sahiptir</li>
+              <li>Sadece Admin rolündeki kullanıcılar görebilir</li>
+              <li>Tüm tenant ve proje verilerine erişim sağlar</li>
+              <li>Çok dikkatli kullanılmalı ve paylaşılmamalıdır</li>
+            </ul>
+          </div>
+        </div>
+      </main>
 
       {/* Confirmation Modals */}
       <ConfirmModal
         isOpen={showRegenerateKeyModal}
         onClose={() => setShowRegenerateKeyModal(false)}
         onConfirm={handleRegenerateKey}
-        title="API Key Yenile"
-        message="API Key yenilenecek, ancak API Password aynı kalacak. Eski API Key artık çalışmayacak. Devam etmek istiyor musunuz?"
+        title="Master Admin API Key Yenile"
+        message="Master Admin API Key yenilenecek, ancak API Password aynı kalacak. Eski API Key artık çalışmayacak. Devam etmek istiyor musunuz?"
         confirmText="Evet, Yenile"
         cancelText="İptal"
         type="warning"
@@ -396,28 +377,16 @@ const UserSettingsPage = () => {
         isOpen={showRegeneratePasswordModal}
         onClose={() => setShowRegeneratePasswordModal(false)}
         onConfirm={handleRegeneratePassword}
-        title="API Password Yenile"
-        message="API Password yenilenecek, ancak API Key aynı kalacak. Eski şifre artık çalışmayacak. Devam etmek istiyor musunuz?"
+        title="Master Admin API Password Yenile"
+        message="Master Admin API Password yenilenecek, ancak API Key aynı kalacak. Eski şifre artık çalışmayacak. Devam etmek istiyor musunuz?"
         confirmText="Evet, Yenile"
         cancelText="İptal"
         type="warning"
         isLoading={regeneratingPassword}
       />
-
-      <ConfirmModal
-        isOpen={showRevokeModal}
-        onClose={() => setShowRevokeModal(false)}
-        onConfirm={handleRevoke}
-        title="API Erişimini İptal Et"
-        message="Tüm API kimlik bilgileriniz silinecek ve programatik erişim tamamen kapatılacak. Bu işlem geri alınamaz! Devam etmek istiyor musunuz?"
-        confirmText="Evet, İptal Et"
-        cancelText="Vazgeç"
-        type="danger"
-        isLoading={revoking}
-      />
     </div>
   );
 };
 
-export default UserSettingsPage;
+export default SystemSettingsPage;
 

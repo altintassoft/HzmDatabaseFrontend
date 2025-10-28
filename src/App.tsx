@@ -6,35 +6,35 @@ import AdminRoute from './components/AdminRoute';
 import SocialMediaDisplay from './components/SocialMediaDisplay';
 import SEOHead from './components/SEOHead';
 // Common Pages
-import HomePage from './pages/common/HomePage';
-import LoginPage from './pages/common/LoginPage';
-import RegisterPage from './pages/common/RegisterPage';
+import HomePage from './pages/common/home/HomePage';
+import LoginPage from './pages/common/login/LoginPage';
+import RegisterPage from './pages/common/register/RegisterPage';
 
 // Customer Pages
-import DashboardPage from './pages/customer/DashboardPage';
-import DatabasePricing from './pages/customer/DatabasePricing';
-import UserSettingsPage from './pages/customer/UserSettingsPage';
+import DashboardPage from './pages/customer/dashboard/DashboardPage';
+import DatabasePricing from './pages/customer/pricing/DatabasePricing';
+import UserSettingsPage from './pages/customer/settings/UserSettingsPage';
 
 // Project Pages
-import ProjectsListPage from './pages/projects/ProjectsListPage';
-import ProjectDetailPage from './pages/projects/ProjectDetailPage';
-import ProjectDataPage from './pages/projects/ProjectDataPage';
+import ProjectsListPage from './pages/projects/list/ProjectsListPage';
+import ProjectDetailPage from './pages/projects/detail/ProjectDetailPage';
+import ProjectDataPage from './pages/projects/data/ProjectDataPage';
 
 // Admin Pages
-import AdminPage from './pages/admin/AdminDashboard';
-import DatabaseUsers from './pages/admin/DatabaseUsers';
-import DatabaseProjects from './pages/admin/DatabaseProjects';
-import DatabaseState from './pages/admin/DatabaseState';
-import UpgradePlanPage from './pages/admin/UpgradePlanPage';
+import AdminPage from './pages/admin/dashboard/AdminDashboard';
+import DatabaseUsers from './pages/admin/database-users/DatabaseUsers';
+import DatabaseProjects from './pages/admin/database-projects/DatabaseProjects';
+import DatabaseState from './pages/admin/database-state/DatabaseState';
+import UpgradePlanPage from './pages/admin/upgrade-plan/UpgradePlanPage';
 import BackendReportsPage from './pages/admin/reports/BackendReportsPage';
 
 // Master Admin Pages
-import SystemSettingsPage from './pages/master-admin/SystemSettingsPage';
+import SystemSettingsPage from './pages/master-admin/system-settings/SystemSettingsPage';
 
 // Layout
 import Layout from './components/Layout';
 // CIO Module Import
-import { CIODashboard } from './pages/cio';
+import { CIODashboard } from './pages/cio/dashboard';
 import './App.css';
 
 // Mock sosyal medya linkleri - gerçek uygulamada bu veriler state management'ten gelecek

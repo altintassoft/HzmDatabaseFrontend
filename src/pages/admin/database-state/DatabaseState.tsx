@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDatabase } from '../../context/DatabaseContext';
+import { useDatabase } from '../../../context/DatabaseContext';
 import { 
   Settings, 
   ArrowLeft, 
@@ -24,7 +24,7 @@ import {
   Check,
   Shield
 } from 'lucide-react';
-import ConfirmModal from '../../components/ConfirmModal';
+import ConfirmModal from '../../../components/ConfirmModal';
 
 interface MasterAdminData {
   email: string;

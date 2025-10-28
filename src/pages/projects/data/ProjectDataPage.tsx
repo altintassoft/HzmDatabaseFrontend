@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useDatabase } from '../../context/DatabaseContext';
+import { useDatabase } from '../../../context/DatabaseContext';
 import { 
   ArrowLeft, 
   Table, 
