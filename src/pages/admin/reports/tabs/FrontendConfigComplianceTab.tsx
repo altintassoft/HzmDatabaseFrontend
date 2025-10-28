@@ -41,20 +41,27 @@ const FrontendConfigComplianceTab = () => {
       console.log('📊 Compliance API Response (Frontend):', response);
       
       // Backend response format: { success: true, backend: [...], frontend: [...] }
-      if (response && response.frontend) {
+      if (response && response.frontend && response.frontend.length > 0) {
         console.log('✅ Frontend rules loaded:', response.frontend.length);
         setFrontendRules(response.frontend);
         setHasScanned(true);
+        setError(null);
+      } else if (response && response.frontend && response.frontend.length === 0) {
+        console.error('⚠️ Frontend rules empty - GitHub Token missing?');
+        setError('GitHub Token eksik veya frontend repository erişilemiyor. Railway env vars kontrol edin.');
+        setHasScanned(true); // Hata ekranı göster
+        setFrontendRules([]);
       } else {
         console.error('❌ Unexpected response format:', response);
         setError('Beklenmeyen veri formatı');
-        setFrontendRules(mockFrontendRules);
+        setHasScanned(true);
+        setFrontendRules([]);
       }
     } catch (err: any) {
       console.error('❌ Failed to fetch compliance:', err);
-      setError(err.message || 'Rapor yüklenemedi');
-      // Fallback to mock data
-      setFrontendRules(mockFrontendRules);
+      setError(err.message || 'Rapor yüklenemedi. Backend erişilebilir mi?');
+      setHasScanned(true); // Hata ekranı göster
+      setFrontendRules([]); // Mock data yerine boş array
     } finally {
       setLoading(false);
     }
@@ -100,15 +107,41 @@ const FrontendConfigComplianceTab = () => {
     );
   }
 
-  if (error) {
+  if (error && hasScanned) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-xl p-6">
-        <div className="flex items-center gap-3 text-red-700">
-          <XCircle size={24} />
-          <div>
-            <div className="font-semibold">Hata</div>
-            <div className="text-sm">{error}</div>
+      <div className="space-y-4">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
+          <div className="flex items-center gap-3 text-yellow-700 mb-4">
+            <AlertTriangle size={24} />
+            <div>
+              <div className="font-semibold">⚠️ GitHub Token Eksik</div>
+              <div className="text-sm mt-1">{error}</div>
+            </div>
           </div>
+          
+          <div className="bg-white rounded-lg p-4 border border-yellow-200 mb-4">
+            <div className="text-sm text-gray-700 space-y-2">
+              <p className="font-semibold">Railway'de şu environment variables'ları ekleyin:</p>
+              <div className="bg-gray-100 p-3 rounded font-mono text-xs">
+                <div>GITHUB_TOKEN=ghp_your_token_here</div>
+                <div>GITHUB_FRONTEND_REPO=altintassoft/HzmDatabaseFrontend</div>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                📖 Detaylı kurulum: <code className="bg-gray-100 px-1 rounded">GITHUB_SCANNER_README.md</code>
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={handleScan}
+            disabled={loading}
+            className="px-4 py-2 bg-cyan-600 text-white font-medium rounded-lg hover:bg-cyan-700 transition-all shadow-sm flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Tekrar Dene
+          </button>
         </div>
       </div>
     );

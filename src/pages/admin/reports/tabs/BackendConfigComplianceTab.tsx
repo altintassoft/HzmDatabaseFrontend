@@ -41,20 +41,21 @@ const BackendConfigComplianceTab = () => {
       console.log('📊 Compliance API Response (Backend):', response);
       
       // Backend response format: { success: true, backend: [...], frontend: [...] }
-      if (response && response.backend) {
+      if (response && response.backend && response.backend.length > 0) {
         console.log('✅ Backend rules loaded:', response.backend.length);
         setBackendRules(response.backend);
         setHasScanned(true);
+        setError(null);
       } else {
-        console.error('❌ Unexpected response format:', response);
-        setError('Beklenmeyen veri formatı');
-        setBackendRules(mockBackendRules);
+        console.error('❌ Backend rules empty or invalid:', response);
+        setError('Backend taraması başarısız. Lütfen tekrar deneyin.');
+        setHasScanned(true); // Hata ekranı göster ama başa dönme
       }
     } catch (err: any) {
       console.error('❌ Failed to fetch compliance:', err);
-      setError(err.message || 'Rapor yüklenemedi');
-      // Fallback to mock data
-      setBackendRules(mockBackendRules);
+      setError(err.message || 'Rapor yüklenemedi. Backend erişilebilir mi?');
+      setHasScanned(true); // Hata ekranı göster
+      setBackendRules([]); // Mock data yerine boş array
     } finally {
       setLoading(false);
     }
@@ -99,15 +100,27 @@ const BackendConfigComplianceTab = () => {
     );
   }
 
-  if (error) {
+  if (error && hasScanned) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-xl p-6">
-        <div className="flex items-center gap-3 text-red-700">
-          <XCircle size={24} />
-          <div>
-            <div className="font-semibold">Hata</div>
-            <div className="text-sm">{error}</div>
+      <div className="space-y-4">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+          <div className="flex items-center gap-3 text-red-700 mb-4">
+            <XCircle size={24} />
+            <div>
+              <div className="font-semibold">Tarama Hatası</div>
+              <div className="text-sm">{error}</div>
+            </div>
           </div>
+          <button
+            onClick={handleScan}
+            disabled={loading}
+            className="px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-all shadow-sm flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Tekrar Dene
+          </button>
         </div>
       </div>
     );
