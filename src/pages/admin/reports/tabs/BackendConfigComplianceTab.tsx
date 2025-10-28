@@ -13,6 +13,18 @@ interface ComplianceRule {
   detay?: any;
 }
 
+// Mock data (fallback) - Component DIŞINDA tanımla!
+const mockBackendRules: ComplianceRule[] = [
+  {
+    id: 1,
+    bölüm: 'I',
+    kural: '1. Hard-Code Yasağı',
+    durum: 'kısmi',
+    yüzde: 65,
+    açıklama: 'Geçici mock data - API yükleniyor...',
+  },
+];
+
 const BackendConfigComplianceTab = () => {
   const [backendRules, setBackendRules] = useState<ComplianceRule[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,14 +37,25 @@ const BackendConfigComplianceTab = () => {
         setLoading(true);
         const response = await api.get('/admin/database?type=configuration-compliance');
         
-        if (response.data.success && response.data.data) {
-          setBackendRules(response.data.data.backend || []);
+        console.log('📊 Compliance API Response:', response.data);
+        
+        // Backend response format: { success: true, data: { backend: [...], frontend: [...] } }
+        if (response.data && response.data.data) {
+          const backendData = response.data.data.backend || [];
+          console.log('✅ Backend rules loaded:', backendData.length);
+          setBackendRules(backendData);
+        } else if (response.data && response.data.backend) {
+          // Alternative format: direct { backend: [...], frontend: [...] }
+          console.log('✅ Backend rules loaded (alt format):', response.data.backend.length);
+          setBackendRules(response.data.backend);
         } else {
-          setError('Compliance data format error');
+          console.error('❌ Unexpected response format:', response.data);
+          setError('Beklenmeyen veri formatı');
+          setBackendRules(mockBackendRules);
         }
       } catch (err: any) {
-        console.error('Failed to fetch compliance:', err);
-        setError(err.response?.data?.message || 'Rapor yüklenemedi');
+        console.error('❌ Failed to fetch compliance:', err);
+        setError(err.response?.data?.message || err.message || 'Rapor yüklenemedi');
         // Fallback to mock data
         setBackendRules(mockBackendRules);
       } finally {
@@ -67,192 +90,6 @@ const BackendConfigComplianceTab = () => {
       </div>
     );
   }
-
-// Mock data (fallback)
-const mockBackendRules: ComplianceRule[] = [
-  // BÖLÜM I: TEMEL PRENSİPLER
-  {
-    id: 1,
-    bölüm: 'I',
-    kural: '1. Hard-Code Yasağı',
-    durum: 'kısmi',
-    yüzde: 65,
-    açıklama: 'Path management kısmen uyumlu. Bazı dosyalarda hala deep relative paths var (../../../../).',
-    öneri: 'Module aliases (@core, @modules) kullanımı yaygınlaştırılmalı.'
-  },
-  {
-    id: 2,
-    bölüm: 'I',
-    kural: '2. Dynamic Discovery',
-    durum: 'uyumsuz',
-    yüzde: 30,
-    açıklama: 'Module auto-loading yok. Route\'lar manuel olarak import edilip register ediliyor.',
-    öneri: 'ModuleLoader.autoLoadRoutes(app) implementasyonu yapılmalı.'
-  },
-  {
-    id: 3,
-    bölüm: 'I',
-    kural: '3. Configuration Patterns',
-    durum: 'kısmi',
-    yüzde: 70,
-    açıklama: 'Config dosyası var ama constants (PATHS, TABLES) dosyaları eksik.',
-    öneri: 'src/core/constants/paths.js ve tables.js oluşturulmalı.'
-  },
-  {
-    id: 4,
-    bölüm: 'I',
-    kural: '4. Anti-Patterns (Yasak)',
-    durum: 'uyumsuz',
-    yüzde: 40,
-    açıklama: 'Deep relative paths (../../../../) ve hard-coded values mevcut.',
-    öneri: 'Pre-commit hook ile otomatik kontrol eklenmeli.'
-  },
-  {
-    id: 5,
-    bölüm: 'I',
-    kural: '5. Best Practices',
-    durum: 'kısmi',
-    yüzde: 55,
-    açıklama: 'Module aliases kısmen kullanılıyor, convention over configuration eksik.',
-    öneri: 'Standart klasör yapısı ve naming conventions takip edilmeli.'
-  },
-
-  // BÖLÜM II: GÜVENLİK & KALİTE
-  {
-    id: 6,
-    bölüm: 'II',
-    kural: '6. Güvenlik & Gizli Bilgi',
-    durum: 'kısmi',
-    yüzde: 60,
-    açıklama: 'Environment variables kullanılıyor ama secrets maskeleme eksik.',
-    öneri: 'Logger\'da credential maskeleme implementasyonu yapılmalı.'
-  },
-  {
-    id: 7,
-    bölüm: 'II',
-    kural: '7. Hata Yönetimi & Logging',
-    durum: 'kısmi',
-    yüzde: 65,
-    açıklama: 'Logger var ama structured logging (JSON) ve error codes eksik.',
-    öneri: 'APP_[DOMAIN]_[REASON] formatında error code standardı oluşturulmalı.'
-  },
-  {
-    id: 8,
-    bölüm: 'II',
-    kural: '8. Multi-Tenant & İzleme',
-    durum: 'uyumlu',
-    yüzde: 85,
-    açıklama: 'tenant_id filtresi ve RLS policy mevcut. Audit logs eksik.',
-    öneri: 'Audit trail middleware eklenmeli.'
-  },
-  {
-    id: 9,
-    bölüm: 'II',
-    kural: '9. İsimlendirme & Konvansiyon',
-    durum: 'uyumsuz',
-    yüzde: 45,
-    açıklama: 'Naming inconsistency: api-keys vs api-key, user vs users. Plural/singular karmaşası.',
-    öneri: 'Tüm modül dosyaları plural olmalı (users.routes.js).'
-  },
-
-  // BÖLÜM III: VERİ & API
-  {
-    id: 10,
-    bölüm: 'III',
-    kural: '10. Zaman, Para, Kimlik',
-    durum: 'uyumlu',
-    yüzde: 90,
-    açıklama: 'TIMESTAMPTZ, UUID kullanılıyor. Para için DECIMAL var.',
-    öneri: 'UUID v7 (sıralanabilir) migrasyon yapılabilir.'
-  },
-  {
-    id: 11,
-    bölüm: 'III',
-    kural: '11. API Sözleşmesi & Versiyonlama',
-    durum: 'kısmi',
-    yüzde: 50,
-    açıklama: '/api/v1 var ama OpenAPI spec eksik.',
-    öneri: 'OpenAPI 3.1 spec oluşturulup swagger-ui eklenmeli.'
-  },
-  {
-    id: 12,
-    bölüm: 'III',
-    kural: '12. Performans & Ölçeklenebilirlik',
-    durum: 'kısmi',
-    yüzde: 55,
-    açıklama: 'Redis cache var ama rate limiting eksik.',
-    öneri: 'express-rate-limit ile IP+user+tenant bazlı limit eklenmeli.'
-  },
-
-  // BÖLÜM IV: BACKEND KURALLARI
-  {
-    id: 14,
-    bölüm: 'IV',
-    kural: '14. Backend Kuralları',
-    durum: 'kısmi',
-    yüzde: 60,
-    açıklama: 'Database queries uyumlu. File system ve imports için PATHS/constants eksik.',
-    öneri: 'TABLES constant kullanımı yaygınlaştırılmalı.'
-  },
-
-  // BÖLÜM V: KOD KALİTESİ & OTOMASYON
-  {
-    id: 15,
-    bölüm: 'V',
-    kural: '15. Kod Kalitesi & Kurallar',
-    durum: 'kısmi',
-    yüzde: 50,
-    açıklama: 'ESLint var ama deep path yasağı kuralı yok.',
-    öneri: 'import/no-relative-parent-imports ve no-restricted-imports kuralları eklenmeli.'
-  },
-  {
-    id: 16,
-    bölüm: 'V',
-    kural: '16. CI/CD Otomatik Kontroller',
-    durum: 'uyumsuz',
-    yüzde: 20,
-    açıklama: 'Pre-commit hook yok, CI pipeline sadece basic test yapıyor.',
-    öneri: 'Husky + lint-staged ekleyip deep path/IP/credentials taraması yapılmalı.'
-  },
-
-  // BÖLÜM VI: ADVANCED
-  {
-    id: 17,
-    bölüm: 'VI',
-    kural: '17. Test & Doğrulama',
-    durum: 'uyumsuz',
-    yüzde: 25,
-    açıklama: 'Test coverage düşük. Unit/integration/E2E test eksik.',
-    öneri: 'Jest/Vitest ile test piramidi oluşturulmalı.'
-  },
-  {
-    id: 18,
-    bölüm: 'VI',
-    kural: '18. Alias & Yol Çözümleme',
-    durum: 'uyumsuz',
-    yüzde: 30,
-    açıklama: 'module-alias kullanılmıyor. Deep relative paths yaygın.',
-    öneri: 'package.json\'a _moduleAliases eklenmeli.'
-  },
-  {
-    id: 19,
-    bölüm: 'VI',
-    kural: '19. Feature Flags',
-    durum: 'uyumsuz',
-    yüzde: 10,
-    açıklama: 'Feature flag sistemi yok.',
-    öneri: '@core/flags implementasyonu yapılabilir (opsiyonel).'
-  },
-  {
-    id: 20,
-    bölüm: 'VI',
-    kural: '20. Dokümantasyon',
-    durum: 'kısmi',
-    yüzde: 60,
-    açıklama: 'Roadmap ve docs/ var ama modül README\'leri eksik.',
-    öneri: 'Her modül için README + API örnekleri eklenmeli.'
-  },
-];
 
   // Genel compliance score hesapla
   const totalScore = backendRules.reduce((sum, rule) => sum + rule.yüzde, 0);

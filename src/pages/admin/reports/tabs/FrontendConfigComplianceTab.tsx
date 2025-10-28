@@ -13,6 +13,18 @@ interface ComplianceRule {
   detay?: any;
 }
 
+// Mock data (fallback) - Component DIŞINDA tanımla!
+const mockFrontendRules: ComplianceRule[] = [
+  {
+    id: 1,
+    bölüm: 'I',
+    kural: '1. Hard-Code Yasağı',
+    durum: 'kısmi',
+    yüzde: 65,
+    açıklama: 'Geçici mock data - API yükleniyor...',
+  },
+];
+
 const FrontendConfigComplianceTab = () => {
   const [frontendRules, setFrontendRules] = useState<ComplianceRule[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,14 +37,25 @@ const FrontendConfigComplianceTab = () => {
         setLoading(true);
         const response = await api.get('/admin/database?type=configuration-compliance');
         
-        if (response.data.success && response.data.data) {
-          setFrontendRules(response.data.data.frontend || []);
+        console.log('📊 Compliance API Response (Frontend):', response.data);
+        
+        // Backend response format: { success: true, data: { backend: [...], frontend: [...] } }
+        if (response.data && response.data.data) {
+          const frontendData = response.data.data.frontend || [];
+          console.log('✅ Frontend rules loaded:', frontendData.length);
+          setFrontendRules(frontendData);
+        } else if (response.data && response.data.frontend) {
+          // Alternative format: direct { backend: [...], frontend: [...] }
+          console.log('✅ Frontend rules loaded (alt format):', response.data.frontend.length);
+          setFrontendRules(response.data.frontend);
         } else {
-          setError('Compliance data format error');
+          console.error('❌ Unexpected response format:', response.data);
+          setError('Beklenmeyen veri formatı');
+          setFrontendRules(mockFrontendRules);
         }
       } catch (err: any) {
-        console.error('Failed to fetch compliance:', err);
-        setError(err.response?.data?.message || 'Rapor yüklenemedi');
+        console.error('❌ Failed to fetch compliance:', err);
+        setError(err.response?.data?.message || err.message || 'Rapor yüklenemedi');
         // Fallback to mock data
         setFrontendRules(mockFrontendRules);
       } finally {
@@ -67,163 +90,6 @@ const FrontendConfigComplianceTab = () => {
       </div>
     );
   }
-
-// Mock data (fallback)
-const mockFrontendRules: ComplianceRule[] = [
-  // BÖLÜM I: TEMEL PRENSİPLER
-  {
-    id: 1,
-    bölüm: 'I',
-    kural: '1. Hard-Code Yasağı',
-    durum: 'kısmi',
-    yüzde: 70,
-    açıklama: 'API URLs kısmen environment variable\'dan geliyor. Bazı asset path\'ler hard-coded.',
-    öneri: 'Tüm URL\'ler ve asset path\'leri constants dosyasından gelsin.'
-  },
-  {
-    id: 2,
-    bölüm: 'I',
-    kural: '2. Dynamic Discovery',
-    durum: 'geçerli-değil',
-    yüzde: 0,
-    açıklama: 'Frontend için geçerli değil (React routing manual).',
-    öneri: '-'
-  },
-  {
-    id: 3,
-    bölüm: 'I',
-    kural: '3. Configuration Patterns',
-    durum: 'kısmi',
-    yüzde: 60,
-    açıklama: 'Vite env variables kullanılıyor ama constants dosyaları eksik.',
-    öneri: 'src/constants/ klasörü oluşturup ROUTES, ENDPOINTS, ASSETS constants ekle.'
-  },
-  {
-    id: 4,
-    bölüm: 'I',
-    kural: '4. Anti-Patterns (Yasak)',
-    durum: 'kısmi',
-    yüzde: 65,
-    açıklama: 'Relative import\'lar temiz ama bazı hard-coded URL\'ler mevcut.',
-    öneri: 'ESLint kuralı ekle: no-restricted-imports.'
-  },
-  {
-    id: 5,
-    bölüm: 'I',
-    kural: '5. Best Practices',
-    durum: 'uyumlu',
-    yüzde: 85,
-    açıklama: 'React best practices takip ediliyor. Component yapısı düzgün.',
-    öneri: 'TypeScript strict mode açılabilir.'
-  },
-
-  // BÖLÜM II: GÜVENLİK & KALİTE
-  {
-    id: 6,
-    bölüm: 'II',
-    kural: '6. Güvenlik & Gizli Bilgi',
-    durum: 'uyumlu',
-    yüzde: 90,
-    açıklama: 'API keys client bundle\'ında yok. Token sessionStorage\'da.',
-    öneri: 'Token httpOnly cookie\'ye taşınabilir (XSS koruması).'
-  },
-  {
-    id: 7,
-    bölüm: 'II',
-    kural: '7. Hata Yönetimi & Logging',
-    durum: 'kısmi',
-    yüzde: 55,
-    açıklama: 'console.error kullanılıyor ama structured logging yok.',
-    öneri: 'Sentry/LogRocket gibi error tracking servisi ekle.'
-  },
-  {
-    id: 8,
-    bölüm: 'II',
-    kural: '8. Multi-Tenant & İzleme',
-    durum: 'geçerli-değil',
-    yüzde: 0,
-    açıklama: 'Frontend için tenant izleme backend\'de yapılıyor.',
-    öneri: '-'
-  },
-  {
-    id: 9,
-    bölüm: 'II',
-    kural: '9. İsimlendirme & Konvansiyon',
-    durum: 'uyumlu',
-    yüzde: 85,
-    açıklama: 'Component isimleri PascalCase, dosya isimleri tutarlı.',
-    öneri: 'Page/Component/Hook naming convention dokümante edilmeli.'
-  },
-
-  // BÖLÜM IV: FRONTEND KURALLARI
-  {
-    id: 13,
-    bölüm: 'IV',
-    kural: '13. Frontend Kuralları',
-    durum: 'kısmi',
-    yüzde: 60,
-    açıklama: 'API client (axios) var ama interceptor\'lar ve retry logic eksik.',
-    öneri: '@/lib/api.ts dosyası oluşturup merkezi API client yapılmalı.'
-  },
-
-  // BÖLÜM V: KOD KALİTESİ & OTOMASYON
-  {
-    id: 15,
-    bölüm: 'V',
-    kural: '15. Kod Kalitesi & Kurallar',
-    durum: 'uyumlu',
-    yüzde: 80,
-    açıklama: 'ESLint + Prettier aktif. TypeScript kullanılıyor.',
-    öneri: 'Husky pre-commit hook ekle.'
-  },
-  {
-    id: 16,
-    bölüm: 'V',
-    kural: '16. CI/CD Otomatik Kontroller',
-    durum: 'kısmi',
-    yüzde: 50,
-    açıklama: 'Build check var ama lint + test CI\'da çalışmıyor.',
-    öneri: 'GitHub Actions workflow\'a lint ve test ekle.'
-  },
-
-  // BÖLÜM VI: ADVANCED
-  {
-    id: 17,
-    bölüm: 'VI',
-    kural: '17. Test & Doğrulama',
-    durum: 'uyumsuz',
-    yüzde: 15,
-    açıklama: 'Unit test yok, component test yok.',
-    öneri: 'Vitest + React Testing Library setup yapılmalı.'
-  },
-  {
-    id: 18,
-    bölüm: 'VI',
-    kural: '18. Alias & Yol Çözümleme',
-    durum: 'kısmi',
-    yüzde: 70,
-    açıklama: 'Vite alias\'lar kullanılıyor (@/) ama inconsistent.',
-    öneri: 'vite.config.ts\'de tüm alias\'lar tanımlanmalı.'
-  },
-  {
-    id: 19,
-    bölüm: 'VI',
-    kural: '19. Feature Flags',
-    durum: 'uyumsuz',
-    yüzde: 10,
-    açıklama: 'Feature flag sistemi yok.',
-    öneri: 'LaunchDarkly/ConfigCat gibi servis entegre edilebilir (opsiyonel).'
-  },
-  {
-    id: 20,
-    bölüm: 'VI',
-    kural: '20. Dokümantasyon',
-    durum: 'kısmi',
-    yüzde: 50,
-    açıklama: 'README var ama component documentation eksik.',
-    öneri: 'Storybook eklenip component gallery oluşturulmalı.'
-  },
-];
 
   // Genel compliance score hesapla (geçerli-değil olanları çıkar)
   const applicableRules = frontendRules.filter(r => r.durum !== 'geçerli-değil');
