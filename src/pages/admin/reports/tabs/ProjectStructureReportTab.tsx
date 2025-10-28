@@ -85,6 +85,31 @@ export default function ProjectStructureReportTab() {
     }
   };
 
+  // ============================================================================
+  // RUN ANALYSIS - Trigger backend script to regenerate report
+  // ============================================================================
+  const runAnalysis = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const data = await api.post('/admin/analyze-files');
+
+      if (data.success) {
+        // Wait 3 seconds for script to complete, then fetch updated report
+        setTimeout(async () => {
+          await fetchReport();
+        }, 3000);
+      } else {
+        setError(data.message || data.error || 'Analiz başlatılamadı');
+      }
+    } catch (err: any) {
+      console.error('Failed to run analysis:', err);
+      setError(err.response?.data?.message || err.message || 'Analiz çalıştırılamadı');
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchReport();
   }, []);
@@ -140,13 +165,26 @@ export default function ProjectStructureReportTab() {
           <h2 className="text-2xl font-bold text-gray-900 mb-2">📊 Proje Yapısı Raporu</h2>
           <p className="text-gray-600">Frontend & Backend - Otomatik Dosya Boyutu Analizi</p>
         </div>
-        <button
-          onClick={fetchReport}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-        >
-          <RefreshCw size={16} />
-          <span>Yenile</span>
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={runAnalysis}
+            disabled={loading}
+            className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Dosya analizini yeniden çalıştır ve raporu güncelle"
+          >
+            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+            <span>Analiz Çalıştır</span>
+          </button>
+          <button
+            onClick={fetchReport}
+            disabled={loading}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Raporu yeniden yükle"
+          >
+            <RefreshCw size={16} />
+            <span>Yenile</span>
+          </button>
+        </div>
       </div>
 
       {/* Info Box */}
