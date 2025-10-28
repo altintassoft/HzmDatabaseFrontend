@@ -156,7 +156,17 @@ function getStatusBadge(status: FileInfo['status'], lines: number) {
 // DIRECTORY NODE COMPONENT
 // ============================================================================
 
-function DirectoryNodeComponent({ node, level = 0 }: { node: DirectoryNode; level?: number }) {
+function DirectoryNodeComponent({ 
+  node, 
+  level = 0, 
+  isLast = false,
+  parentLines = []
+}: { 
+  node: DirectoryNode; 
+  level?: number;
+  isLast?: boolean;
+  parentLines?: boolean[];
+}) {
   const [expanded, setExpanded] = useState(node.expanded || false);
   
   // ✅ FIX: node.expanded değişince local state'i güncelle
@@ -167,46 +177,111 @@ function DirectoryNodeComponent({ node, level = 0 }: { node: DirectoryNode; leve
   const hasChildren = (node.children && node.children.length > 0) || (node.files && node.files.length > 0);
   
   return (
-    <div>
+    <div className="relative">
       {/* Folder Header */}
       <div
-        className="flex items-center gap-2 py-2 px-3 hover:bg-gray-50 rounded-lg cursor-pointer"
-        style={{ paddingLeft: `${level * 24 + 12}px` }}
+        className="flex items-center gap-2 py-2 px-3 hover:bg-gray-50 rounded-lg cursor-pointer relative"
         onClick={() => hasChildren && setExpanded(!expanded)}
       >
-        {hasChildren && (
-          <div className="text-gray-400">
-            {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-          </div>
+        {/* Tree Lines */}
+        <div className="absolute left-0 top-0 bottom-0 flex" style={{ width: `${level * 24}px` }}>
+          {parentLines.map((shouldDrawLine, idx) => (
+            <div key={idx} className="relative" style={{ width: '24px' }}>
+              {shouldDrawLine && (
+                <div 
+                  className="absolute left-3 top-0 bottom-0 w-px bg-gray-300"
+                  style={{ height: '100%' }}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+        
+        {/* Current Level Line */}
+        {level > 0 && (
+          <div 
+            className="absolute bg-gray-300"
+            style={{
+              left: `${(level - 1) * 24 + 12}px`,
+              top: '50%',
+              width: '12px',
+              height: '1px'
+            }}
+          />
         )}
-        <Folder size={18} className="text-blue-500 flex-shrink-0" />
-        <span className="font-medium text-gray-700">{node.name}</span>
+        
+        <div style={{ paddingLeft: `${level * 24 + 12}px` }} className="flex items-center gap-2 flex-1">
+          {hasChildren && (
+            <div className="text-gray-400 flex-shrink-0">
+              {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+            </div>
+          )}
+          <Folder size={18} className="text-blue-500 flex-shrink-0" />
+          <span className="font-medium text-gray-700">{node.name}</span>
+        </div>
       </div>
       
       {/* Children */}
       {expanded && (
         <div>
           {/* Sub-folders */}
-          {node.children?.map((child, idx) => (
-            <DirectoryNodeComponent key={idx} node={child} level={level + 1} />
-          ))}
+          {node.children?.map((child, idx) => {
+            const isLastChild = idx === (node.children?.length || 0) - 1 && (!node.files || node.files.length === 0);
+            const newParentLines = [...parentLines, !isLast];
+            return (
+              <DirectoryNodeComponent 
+                key={idx} 
+                node={child} 
+                level={level + 1}
+                isLast={isLastChild}
+                parentLines={newParentLines}
+              />
+            );
+          })}
           
           {/* Files */}
-          {node.files?.map((file, idx) => (
-            <div
-              key={idx}
-              className="flex items-center justify-between py-2 px-3 hover:bg-blue-50 rounded-lg group"
-              style={{ paddingLeft: `${(level + 1) * 24 + 12}px` }}
-            >
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                <File size={16} className="text-gray-400 flex-shrink-0" />
-                <span className="text-gray-700 truncate">{file.name}</span>
+          {node.files?.map((file, idx) => {
+            const isLastFile = idx === (node.files?.length || 0) - 1;
+            return (
+              <div
+                key={idx}
+                className="flex items-center justify-between py-2 px-3 hover:bg-blue-50 rounded-lg group relative"
+              >
+                {/* Tree Lines for Files */}
+                <div className="absolute left-0 top-0 bottom-0 flex" style={{ width: `${(level + 1) * 24}px` }}>
+                  {[...parentLines, !isLast].map((shouldDrawLine, pIdx) => (
+                    <div key={pIdx} className="relative" style={{ width: '24px' }}>
+                      {shouldDrawLine && (
+                        <div 
+                          className="absolute left-3 top-0 bottom-0 w-px bg-gray-300"
+                          style={{ height: '100%' }}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+                
+                {/* File Line */}
+                <div 
+                  className="absolute bg-gray-300"
+                  style={{
+                    left: `${level * 24 + 12}px`,
+                    top: '50%',
+                    width: '12px',
+                    height: '1px'
+                  }}
+                />
+                
+                <div style={{ paddingLeft: `${(level + 1) * 24 + 12}px` }} className="flex items-center gap-2 flex-1 min-w-0">
+                  <File size={16} className="text-gray-400 flex-shrink-0" />
+                  <span className="text-gray-700 truncate">{file.name}</span>
+                </div>
+                <div className="ml-4 flex-shrink-0">
+                  {getStatusBadge(file.status, file.lines)}
+                </div>
               </div>
-              <div className="ml-4 flex-shrink-0">
-                {getStatusBadge(file.status, file.lines)}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
@@ -227,7 +302,8 @@ export default function BackendStructureTab({ markdownContent }: BackendStructur
     ? allFiles 
     : allFiles.filter(f => f.status === filter);
   
-  const tree = buildDirectoryTree(filteredFiles, filter !== 'all');
+  // ✅ İYİLEŞTİRME: Her zaman tüm ağaç açık gelsin
+  const tree = buildDirectoryTree(filteredFiles, true);
   
   // Statistics (from all files, not filtered)
   const stats = {
