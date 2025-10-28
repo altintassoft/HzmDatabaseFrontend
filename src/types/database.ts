@@ -44,3 +44,6 @@ export type DatabaseAction =
   | { type: 'UPDATE_CAMPAIGN'; payload: { campaign: Campaign } }
   | { type: 'DELETE_CAMPAIGN'; payload: { campaignId: string } };
 
+
+
+

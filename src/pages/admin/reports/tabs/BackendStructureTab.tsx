@@ -360,14 +360,63 @@ export default function BackendStructureTab({ markdownContent }: BackendStructur
       <div className="bg-white border border-gray-200 rounded-lg p-4">
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-semibold text-gray-900">Durum Dağılımı</h3>
-          {filter !== 'all' && (
+          <div className="flex items-center gap-2">
+            {filter !== 'all' && (
+              <button
+                onClick={() => setFilter('all')}
+                className="text-sm text-blue-600 hover:text-blue-800 font-medium underline"
+              >
+                Tümünü Göster
+              </button>
+            )}
             <button
-              onClick={() => setFilter('all')}
-              className="text-sm text-blue-600 hover:text-blue-800 font-medium underline"
+              onClick={() => {
+                // Generate tree structure text
+                const generateTreeText = (node: DirectoryNode, prefix: string = '', isLast: boolean = true): string => {
+                  let result = '';
+                  const connector = isLast ? '└── ' : '├── ';
+                  const extension = isLast ? '    ' : '│   ';
+                  
+                  if (node.type === 'folder') {
+                    result += prefix + connector + node.name + '/\n';
+                    const childPrefix = prefix + extension;
+                    if (node.children) {
+                      node.children.forEach((child, index) => {
+                        result += generateTreeText(child, childPrefix, index === node.children!.length - 1);
+                      });
+                    }
+                  } else if (node.type === 'file' && node.files) {
+                    node.files.forEach((file, idx) => {
+                      const status = file.status === 'critical' ? '🔴🔴🔴' : 
+                                     file.status === 'urgent' ? '🔴🔴' :
+                                     file.status === 'danger' ? '🔴' :
+                                     file.status === 'warning' ? '⚠️' : '✅';
+                      const isLastFile = idx === node.files!.length - 1;
+                      const fileConnector = isLastFile ? '└── ' : '├── ';
+                      result += prefix + fileConnector + `${file.name} (${file.lines} satır) ${status}\n`;
+                    });
+                  }
+                  return result;
+                };
+                
+                let treeText = 'Backend Dosya Yapısı\n';
+                treeText += '='.repeat(50) + '\n\n';
+                treeText += generateTreeText(tree);
+                
+                // Copy to clipboard
+                navigator.clipboard.writeText(treeText).then(() => {
+                  alert('✅ Tüm ağaç yapısı kopyalandı!');
+                }).catch(err => {
+                  console.error('Kopyalama hatası:', err);
+                  alert('❌ Kopyalama başarısız!');
+                });
+              }}
+              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
             >
-              Tümünü Göster
+              <span>📋</span>
+              <span>Tüm Ağacı Kopyala</span>
             </button>
-          )}
+          </div>
         </div>
         <div className="flex gap-3 flex-wrap">
           {stats.critical > 0 && (
