@@ -169,14 +169,47 @@ const BackendReportsPage = () => {
             )}
           </div>
 
-          {/* Tab Content */}
+          {/* Tab Content - Always mounted, hidden with CSS to preserve state */}
           <div className="p-6">
-            {activeTab === 'tables' && <BackendTablesTab />}
-            {activeTab === 'migration-schema' && showMigrationSchemaTab && <MigrationSchemaTab />}
-            {activeTab === 'architecture' && showArchitectureTab && <ArchitectureComplianceTab />}
-            {activeTab === 'plan' && showPlanTab && <PlanComplianceTab />}
-            {activeTab === 'project-structure' && showProjectStructureTab && <ProjectStructureReportTab />}
-            {activeTab === 'configuration' && showConfigurationTab && <ConfigurationComplianceTab />}
+            {/* Tables Tab */}
+            <div className={activeTab === 'tables' ? 'block' : 'hidden'}>
+              <BackendTablesTab />
+            </div>
+
+            {/* Migration & Schema Tab */}
+            {showMigrationSchemaTab && (
+              <div className={activeTab === 'migration-schema' ? 'block' : 'hidden'}>
+                <MigrationSchemaTab />
+              </div>
+            )}
+
+            {/* Architecture Tab */}
+            {showArchitectureTab && (
+              <div className={activeTab === 'architecture' ? 'block' : 'hidden'}>
+                <ArchitectureComplianceTab />
+              </div>
+            )}
+
+            {/* Plan Tab */}
+            {showPlanTab && (
+              <div className={activeTab === 'plan' ? 'block' : 'hidden'}>
+                <PlanComplianceTab />
+              </div>
+            )}
+
+            {/* Project Structure Tab */}
+            {showProjectStructureTab && (
+              <div className={activeTab === 'project-structure' ? 'block' : 'hidden'}>
+                <ProjectStructureReportTab />
+              </div>
+            )}
+
+            {/* Configuration Tab */}
+            {showConfigurationTab && (
+              <div className={activeTab === 'configuration' ? 'block' : 'hidden'}>
+                <ConfigurationComplianceTab />
+              </div>
+            )}
           </div>
         </div>
       </div>
