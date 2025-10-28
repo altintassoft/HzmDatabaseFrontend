@@ -380,20 +380,28 @@ export default function BackendStructureTab({ markdownContent }: BackendStructur
                   if (node.type === 'folder') {
                     result += prefix + connector + node.name + '/\n';
                     const childPrefix = prefix + extension;
-                    if (node.children) {
-                      node.children.forEach((child, index) => {
-                        result += generateTreeText(child, childPrefix, index === node.children!.length - 1);
-                      });
-                    }
-                  } else if (node.type === 'file' && node.files) {
-                    node.files.forEach((file, idx) => {
+                    
+                    // Önce child klasörleri, sonra dosyaları göster
+                    const children = node.children || [];
+                    const files = node.files || [];
+                    const totalItems = children.length + files.length;
+                    
+                    // Child klasörleri ekle
+                    children.forEach((child, index) => {
+                      const isLastChild = index === totalItems - 1;
+                      result += generateTreeText(child, childPrefix, isLastChild);
+                    });
+                    
+                    // Dosyaları ekle
+                    files.forEach((file, idx) => {
                       const status = file.status === 'critical' ? '🔴🔴🔴' : 
                                      file.status === 'urgent' ? '🔴🔴' :
                                      file.status === 'danger' ? '🔴' :
                                      file.status === 'warning' ? '⚠️' : '✅';
-                      const isLastFile = idx === node.files!.length - 1;
-                      const fileConnector = isLastFile ? '└── ' : '├── ';
-                      result += prefix + fileConnector + `${file.name} (${file.lines} satır) ${status}\n`;
+                      const actualIndex = children.length + idx;
+                      const isLastItem = actualIndex === totalItems - 1;
+                      const fileConnector = isLastItem ? '└── ' : '├── ';
+                      result += childPrefix + fileConnector + `${file.name} (${file.lines} satır) ${status}\n`;
                     });
                   }
                   return result;
