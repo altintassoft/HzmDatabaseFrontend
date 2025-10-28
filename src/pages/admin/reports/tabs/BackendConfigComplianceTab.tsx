@@ -27,46 +27,73 @@ const mockBackendRules: ComplianceRule[] = [
 
 const BackendConfigComplianceTab = () => {
   const [backendRules, setBackendRules] = useState<ComplianceRule[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasScanned, setHasScanned] = useState(false);
 
-  // Fetch real compliance data
-  useEffect(() => {
-    const fetchCompliance = async () => {
-      try {
-        setLoading(true);
-        const response = await api.get('/admin/database?type=configuration-compliance');
-        
-        console.log('📊 Compliance API Response:', response);
-        
-        // Backend response format: { success: true, backend: [...], frontend: [...] }
-        if (response && response.backend) {
-          console.log('✅ Backend rules loaded:', response.backend.length);
-          setBackendRules(response.backend);
-        } else {
-          console.error('❌ Unexpected response format:', response);
-          setError('Beklenmeyen veri formatı');
-          setBackendRules(mockBackendRules);
-        }
-      } catch (err: any) {
-        console.error('❌ Failed to fetch compliance:', err);
-        setError(err.message || 'Rapor yüklenemedi');
-        // Fallback to mock data
+  // Manuel tarama fonksiyonu
+  const handleScan = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await api.get('/admin/database?type=configuration-compliance');
+      
+      console.log('📊 Compliance API Response (Backend):', response);
+      
+      // Backend response format: { success: true, backend: [...], frontend: [...] }
+      if (response && response.backend) {
+        console.log('✅ Backend rules loaded:', response.backend.length);
+        setBackendRules(response.backend);
+        setHasScanned(true);
+      } else {
+        console.error('❌ Unexpected response format:', response);
+        setError('Beklenmeyen veri formatı');
         setBackendRules(mockBackendRules);
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (err: any) {
+      console.error('❌ Failed to fetch compliance:', err);
+      setError(err.message || 'Rapor yüklenemedi');
+      // Fallback to mock data
+      setBackendRules(mockBackendRules);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchCompliance();
-  }, []);
+  // İlk ekran - Tarama yapılmadıysa
+  if (!hasScanned && !loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="mb-6">
+            <svg className="w-20 h-20 mx-auto text-indigo-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <h3 className="text-xl font-semibold text-gray-700 mb-2">Backend Kod Taraması</h3>
+            <p className="text-gray-500 mb-6">24 kural üzerinden backend kodunu tarayın</p>
+          </div>
+          <button
+            onClick={handleScan}
+            className="px-8 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-all shadow-md hover:shadow-lg flex items-center gap-2 mx-auto"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            Taramayı Başlat
+          </button>
+        </div>
+      </div>
+    );
+  }
 
+  // Loading ekranı
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Kod taraması yapılıyor...</p>
+          <p className="text-gray-400 text-sm mt-2">Bu 10-30 saniye sürebilir</p>
         </div>
       </div>
     );
@@ -133,6 +160,20 @@ const BackendConfigComplianceTab = () => {
 
   return (
     <div className="space-y-6">
+      {/* Yeniden Tara Butonu */}
+      <div className="flex justify-end">
+        <button
+          onClick={handleScan}
+          disabled={loading}
+          className="px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-all shadow-sm hover:shadow-md flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Yeniden Tara
+        </button>
+      </div>
+
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {/* Genel Compliance Score */}
