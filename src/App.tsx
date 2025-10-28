@@ -1,10 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { DatabaseProvider } from './context/DatabaseContext';
-import ProtectedRoute from './components/ProtectedRoute';
-import AdminRoute from './components/AdminRoute';
-import SocialMediaDisplay from './components/SocialMediaDisplay';
-import SEOHead from './components/SEOHead';
+import ProtectedRoute from './components/shared/ProtectedRoute';
+import AdminRoute from './components/shared/AdminRoute';
+import SocialMediaDisplay from './components/layout/SocialMediaDisplay';
+import SEOHead from './components/shared/SEOHead';
 // Common Pages
 import HomePage from './pages/common/home/HomePage';
 import LoginPage from './pages/common/login/LoginPage';
@@ -21,7 +21,7 @@ import ProjectDetailPage from './pages/projects/detail/ProjectDetailPage';
 import ProjectDataPage from './pages/projects/data/ProjectDataPage';
 
 // Admin Pages
-import AdminPage from './pages/admin/dashboard/AdminDashboard';
+import AdminPage from './pages/admin/dashboard/AdminDashboardPage';
 import DatabaseUsers from './pages/admin/database-users/DatabaseUsers';
 import DatabaseProjects from './pages/admin/database-projects/DatabaseProjects';
 import DatabaseState from './pages/admin/database-state/DatabaseState';
@@ -32,7 +32,7 @@ import BackendReportsPage from './pages/admin/reports/BackendReportsPage';
 import SystemSettingsPage from './pages/master-admin/system-settings/SystemSettingsPage';
 
 // Layout
-import Layout from './components/Layout';
+import Layout from './components/layout/Layout';
 // CIO Module Import
 import { CIODashboard } from './pages/cio/dashboard';
 import './App.css';

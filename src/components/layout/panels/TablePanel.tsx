@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useDatabase } from '../../context/DatabaseContext';
+import { useDatabase } from '../../../context/DatabaseContext';
 import { PlusCircle, Table, Trash2, AlertTriangle } from 'lucide-react';
 
 const TablePanel: React.FC = () => {

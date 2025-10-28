@@ -13,7 +13,7 @@ import {
   Clock,
   Settings as SettingsIcon
 } from 'lucide-react';
-import ConfirmModal from '../../../components/ConfirmModal';
+import ConfirmModal from '../../../components/shared/ConfirmModal';
 
 interface ApiKeyData {
   email: string;

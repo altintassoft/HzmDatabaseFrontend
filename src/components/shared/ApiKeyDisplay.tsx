@@ -16,9 +16,9 @@ import {
   ExternalLink,
   Code
 } from 'lucide-react';
-import { useDatabase } from '../context/DatabaseContext';
-import { ApiKeyGenerator } from '../utils/apiKeyGenerator';
-import { Project, ApiKey } from '../types';
+import { useDatabase } from '../../context/DatabaseContext';
+import { ApiKeyGenerator } from '../../utils/apiKeyGenerator';
+import { Project, ApiKey } from '../../types';
 
 interface ApiKeyDisplayProps {
   project: Project;

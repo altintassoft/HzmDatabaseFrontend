@@ -1,6 +1,6 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useDatabase } from '../context/DatabaseContext';
+import { useDatabase } from '../../context/DatabaseContext';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;

@@ -13,7 +13,7 @@ import {
   Settings as SettingsIcon,
   Crown
 } from 'lucide-react';
-import ConfirmModal from '../../../components/ConfirmModal';
+import ConfirmModal from '../../../components/shared/ConfirmModal';
 
 interface MasterAdminData {
   email: string;

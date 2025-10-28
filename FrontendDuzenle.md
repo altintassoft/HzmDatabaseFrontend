@@ -58,8 +58,9 @@ AdminDashboard.tsx        ❌ Suffix yok
 DashboardPage.tsx         ✅ Suffix var
 ```
 **Çözüm:**
-- [ ] `AdminDashboard.tsx` → `AdminDashboardPage.tsx` (rename)
-- [ ] Import'ları güncelle (`App.tsx`)
+- [x] `AdminDashboard.tsx` → `AdminDashboardPage.tsx` (rename) ✅
+- [x] Import'ları güncelle (`App.tsx`) ✅
+**TAMAMLANDI!**
 
 ---
 
@@ -72,9 +73,11 @@ components/
 └── diğerleri           ✅ Genel
 ```
 **Çözüm:**
-- [ ] `shared/` ve `layout/` alt klasörleri oluştur
-- [ ] Dosyaları kategorize et
-- [ ] Import'ları güncelle
+- [x] `shared/` ve `layout/` alt klasörleri oluştur ✅
+- [x] Dosyaları kategorize et ✅
+- [x] Import'ları güncelle (App.tsx + 5 pages) ✅
+- [x] Relative import'ları düzelt (context, types, utils) ✅
+**TAMAMLANDI!**
 
 ---
 
