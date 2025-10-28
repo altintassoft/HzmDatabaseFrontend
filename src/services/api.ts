@@ -156,6 +156,77 @@ class ApiService {
       throw error;
     }
   }
+
+  // Generic POST method for authenticated requests
+  async post(endpoint: string, data?: any): Promise<any> {
+    try {
+      const url = `${API_URL}${endpoint}`;
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: data ? JSON.stringify(data) : undefined,
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('API POST error:', error);
+      throw error;
+    }
+  }
+
+  // Generic PUT method for authenticated requests
+  async put(endpoint: string, data?: any): Promise<any> {
+    try {
+      const url = `${API_URL}${endpoint}`;
+
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers: this.getHeaders(),
+        body: data ? JSON.stringify(data) : undefined,
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('API PUT error:', error);
+      throw error;
+    }
+  }
+
+  // Generic DELETE method for authenticated requests
+  async delete(endpoint: string): Promise<any> {
+    try {
+      const url = `${API_URL}${endpoint}`;
+
+      const response = await fetch(url, {
+        method: 'DELETE',
+        headers: this.getHeaders(),
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('API DELETE error:', error);
+      throw error;
+    }
+  }
 }
 
 export const apiService = new ApiService();
