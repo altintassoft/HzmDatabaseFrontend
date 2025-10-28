@@ -8,7 +8,8 @@ import {
   Flame,
   Zap,
   BarChart3,
-  Copy
+  Copy,
+  Sync
 } from 'lucide-react';
 import api from '../../../../services/api';
 
@@ -66,6 +67,8 @@ export default function ArchitectureComplianceTab() {
   const [error, setError] = useState<string | null>(null);
   const [hasScanned, setHasScanned] = useState(false);
   const [filter, setFilter] = useState<'all' | 'P0' | 'P1' | 'P2'>('all');
+  const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
 
   const fetchData = async () => {
     try {
@@ -90,6 +93,32 @@ export default function ArchitectureComplianceTab() {
       setHasScanned(true);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // ANALIZ.md'yi senkronize et
+  const handleSync = async () => {
+    try {
+      setSyncing(true);
+      setSyncMessage(null);
+      
+      const response = await api.post('/admin/sync-analysis');
+      
+      if (response && response.success) {
+        setSyncMessage(`✅ ${response.updatedFeatures} feature güncellendi!`);
+        // 2 saniye sonra raporu yenile
+        setTimeout(() => {
+          fetchData();
+          setSyncMessage(null);
+        }, 2000);
+      } else {
+        setSyncMessage('❌ Senkronizasyon başarısız');
+      }
+    } catch (err: any) {
+      console.error('❌ Sync error:', err);
+      setSyncMessage('❌ Hata: ' + (err.message || 'Senkronizasyon başarısız'));
+    } finally {
+      setSyncing(false);
     }
   };
 
@@ -275,6 +304,20 @@ ${'='.repeat(60)}
             </div>
           </div>
           <div className="flex gap-2">
+            {syncMessage && (
+              <div className="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg text-sm">
+                {syncMessage}
+              </div>
+            )}
+            <button
+              onClick={handleSync}
+              disabled={syncing}
+              className="px-4 py-2 bg-green-500/90 hover:bg-green-600 backdrop-blur-sm rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="ANALIZ.md'yi Configuration Compliance ile senkronize et"
+            >
+              <Sync size={18} className={syncing ? 'animate-spin' : ''} />
+              <span>{syncing ? 'Senkronize ediliyor...' : 'Senkronize Et'}</span>
+            </button>
             <button
               onClick={handleCopyReport}
               className="px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg transition-colors flex items-center gap-2"
