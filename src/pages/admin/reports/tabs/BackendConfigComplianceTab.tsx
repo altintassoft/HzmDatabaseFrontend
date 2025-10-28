@@ -1,4 +1,6 @@
+import { useState, useEffect } from 'react';
 import { CheckCircle, AlertTriangle, XCircle, Info } from 'lucide-react';
+import api from '../../../../services/api';
 
 interface ComplianceRule {
   id: number;
@@ -8,9 +10,66 @@ interface ComplianceRule {
   yüzde: number;
   açıklama: string;
   öneri?: string;
+  detay?: any;
 }
 
-const backendRules: ComplianceRule[] = [
+const BackendConfigComplianceTab = () => {
+  const [backendRules, setBackendRules] = useState<ComplianceRule[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch real compliance data
+  useEffect(() => {
+    const fetchCompliance = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get('/admin/database?type=configuration-compliance');
+        
+        if (response.data.success && response.data.data) {
+          setBackendRules(response.data.data.backend || []);
+        } else {
+          setError('Compliance data format error');
+        }
+      } catch (err: any) {
+        console.error('Failed to fetch compliance:', err);
+        setError(err.response?.data?.message || 'Rapor yüklenemedi');
+        // Fallback to mock data
+        setBackendRules(mockBackendRules);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCompliance();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Kod taraması yapılıyor...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+        <div className="flex items-center gap-3 text-red-700">
+          <XCircle size={24} />
+          <div>
+            <div className="font-semibold">Hata</div>
+            <div className="text-sm">{error}</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+// Mock data (fallback)
+const mockBackendRules: ComplianceRule[] = [
   // BÖLÜM I: TEMEL PRENSİPLER
   {
     id: 1,
@@ -195,7 +254,6 @@ const backendRules: ComplianceRule[] = [
   },
 ];
 
-const BackendConfigComplianceTab = () => {
   // Genel compliance score hesapla
   const totalScore = backendRules.reduce((sum, rule) => sum + rule.yüzde, 0);
   const averageScore = Math.round(totalScore / backendRules.length);
