@@ -57,8 +57,15 @@ const ConfigurationComplianceTab = () => {
 
         {/* Sub-Tab Content */}
         <div className="p-6">
-          {activeSubTab === 'backend' && <BackendConfigComplianceTab />}
-          {activeSubTab === 'frontend' && <FrontendConfigComplianceTab />}
+          {/* Backend Tab - Always mounted, hidden with CSS */}
+          <div className={activeSubTab === 'backend' ? 'block' : 'hidden'}>
+            <BackendConfigComplianceTab />
+          </div>
+          
+          {/* Frontend Tab - Always mounted, hidden with CSS */}
+          <div className={activeSubTab === 'frontend' ? 'block' : 'hidden'}>
+            <FrontendConfigComplianceTab />
+          </div>
         </div>
       </div>
     </div>
