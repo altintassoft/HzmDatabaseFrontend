@@ -12,10 +12,10 @@ import {
   Eye,
   Target
 } from 'lucide-react';
-import { SocialMediaLink, SEOSettings, GoogleAnalytics, GoogleSearchConsole } from '../types';
-import SocialMediaManager from '../components/SocialMediaManager';
-import SEOManager from '../components/SEOManager';
-import GoogleToolsManager from '../components/GoogleToolsManager';
+import { SocialMediaLink, SEOSettings, GoogleAnalytics, GoogleSearchConsole } from './types';
+import SocialMediaManager from './components/SocialMediaManager';
+import SEOManager from './components/SEOManager';
+import GoogleToolsManager from './components/GoogleToolsManager';
 
 const CIODashboard = () => {
   const navigate = useNavigate();
