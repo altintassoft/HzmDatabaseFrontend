@@ -409,25 +409,7 @@ export default function FrontendStructureTab({ markdownContent }: FrontendStruct
                 
                 let treeText = 'Frontend Dosya Yapısı\n';
                 treeText += '='.repeat(50) + '\n\n';
-                
-                // Root'tan başla
-                treeText += '└── Frontend/\n';
-                
-                // Kök dosyalar
-                treeText += '    ├── FrontendDuzenle.md\n';
-                treeText += '    ├── package.json\n';
-                treeText += '    ├── vite.config.ts\n';
-                treeText += '    ├── tailwind.config.js\n';
-                treeText += '    ├── tsconfig.json\n';
-                treeText += '    ├── index.html\n';
-                
-                // Kod dosyalarını ekle (tree'den)
-                if (tree.children && tree.children.length > 0) {
-                  tree.children.forEach((child, idx) => {
-                    const isLast = idx === tree.children!.length - 1;
-                    treeText += generateTreeText(child, '    ', isLast);
-                  });
-                }
+                treeText += generateTreeText(tree);
                 
                 // Copy to clipboard
                 navigator.clipboard.writeText(treeText).then(() => {
