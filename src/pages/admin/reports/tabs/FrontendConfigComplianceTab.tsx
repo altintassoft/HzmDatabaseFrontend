@@ -37,25 +37,20 @@ const FrontendConfigComplianceTab = () => {
         setLoading(true);
         const response = await api.get('/admin/database?type=configuration-compliance');
         
-        console.log('📊 Compliance API Response (Frontend):', response.data);
+        console.log('📊 Compliance API Response (Frontend):', response);
         
-        // Backend response format: { success: true, data: { backend: [...], frontend: [...] } }
-        if (response.data && response.data.data) {
-          const frontendData = response.data.data.frontend || [];
-          console.log('✅ Frontend rules loaded:', frontendData.length);
-          setFrontendRules(frontendData);
-        } else if (response.data && response.data.frontend) {
-          // Alternative format: direct { backend: [...], frontend: [...] }
-          console.log('✅ Frontend rules loaded (alt format):', response.data.frontend.length);
-          setFrontendRules(response.data.frontend);
+        // Backend response format: { success: true, backend: [...], frontend: [...] }
+        if (response && response.frontend) {
+          console.log('✅ Frontend rules loaded:', response.frontend.length);
+          setFrontendRules(response.frontend);
         } else {
-          console.error('❌ Unexpected response format:', response.data);
+          console.error('❌ Unexpected response format:', response);
           setError('Beklenmeyen veri formatı');
           setFrontendRules(mockFrontendRules);
         }
       } catch (err: any) {
         console.error('❌ Failed to fetch compliance:', err);
-        setError(err.response?.data?.message || err.message || 'Rapor yüklenemedi');
+        setError(err.message || 'Rapor yüklenemedi');
         // Fallback to mock data
         setFrontendRules(mockFrontendRules);
       } finally {

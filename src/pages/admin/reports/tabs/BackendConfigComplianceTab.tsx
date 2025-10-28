@@ -37,25 +37,20 @@ const BackendConfigComplianceTab = () => {
         setLoading(true);
         const response = await api.get('/admin/database?type=configuration-compliance');
         
-        console.log('📊 Compliance API Response:', response.data);
+        console.log('📊 Compliance API Response:', response);
         
-        // Backend response format: { success: true, data: { backend: [...], frontend: [...] } }
-        if (response.data && response.data.data) {
-          const backendData = response.data.data.backend || [];
-          console.log('✅ Backend rules loaded:', backendData.length);
-          setBackendRules(backendData);
-        } else if (response.data && response.data.backend) {
-          // Alternative format: direct { backend: [...], frontend: [...] }
-          console.log('✅ Backend rules loaded (alt format):', response.data.backend.length);
-          setBackendRules(response.data.backend);
+        // Backend response format: { success: true, backend: [...], frontend: [...] }
+        if (response && response.backend) {
+          console.log('✅ Backend rules loaded:', response.backend.length);
+          setBackendRules(response.backend);
         } else {
-          console.error('❌ Unexpected response format:', response.data);
+          console.error('❌ Unexpected response format:', response);
           setError('Beklenmeyen veri formatı');
           setBackendRules(mockBackendRules);
         }
       } catch (err: any) {
         console.error('❌ Failed to fetch compliance:', err);
-        setError(err.response?.data?.message || err.message || 'Rapor yüklenemedi');
+        setError(err.message || 'Rapor yüklenemedi');
         // Fallback to mock data
         setBackendRules(mockBackendRules);
       } finally {
