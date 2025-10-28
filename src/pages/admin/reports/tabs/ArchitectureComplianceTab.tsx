@@ -2,16 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { 
   CheckCircle, 
   XCircle, 
-  AlertCircle, 
-  AlertTriangle,
+  AlertCircle,
   RefreshCw,
-  Database,
-  Globe,
-  Shield,
-  Layers,
-  TrendingUp,
-  Filter,
-  Search
+  Target,
+  Flame,
+  Zap,
+  BarChart3,
+  Copy
 } from 'lucide-react';
 import api from '../../../../services/api';
 
@@ -19,57 +16,44 @@ import api from '../../../../services/api';
 // INTERFACES
 // ============================================================================
 
-interface EndpointData {
-  endpoint: string;
-  method: string;
-  expectedAuth: string;
-  currentAuth: string;
-  authMatch: boolean;
-  expectedType: string;
-  currentType: string;
-  typeMatch: boolean;
-  status: 'compliant' | 'partial' | 'missing' | 'noncompliant' | 'unknown';
-  file: string;
+interface Feature {
+  id: number;
+  name: string;
+  roadmap: string;
+  code: string;
+  gap: number;
+  compliance: number;
+  priority: 'P0' | 'P1' | 'P2';
+  status: 'compliant' | 'partial' | 'non_compliant';
 }
 
-interface SecurityFeature {
+interface Summary {
+  generalScore: number;
+  totalFeatures: number;
+  compliantCount: number;
+  partialCount: number;
+  nonCompliantCount: number;
+  p0Count: number;
+  p1Count: number;
+  p2Count: number;
+}
+
+interface ActionItem {
   feature: string;
-  status: 'implemented' | 'warning' | 'missing';
-  details: string;
-}
-
-interface DatabaseFeature {
-  feature: string;
-  status: 'active' | 'partial' | 'missing';
-  count?: number;
-  details: string;
-}
-
-interface BestPractice {
-  category: string;
-  status: 'good' | 'warning' | 'critical';
-  description: string;
-  recommendation?: string;
+  gap: number;
+  action: string;
 }
 
 interface ComplianceData {
-  summary: {
-    overallScore: number;
-    endpointScore: number;
-    securityScore: number;
-    databaseScore: number;
+  success: boolean;
+  summary: Summary;
+  features: Feature[];
+  actionPlan: {
+    p0: ActionItem[];
+    p1: ActionItem[];
+    p2: ActionItem[];
   };
-  endpoints: EndpointData[];
-  endpointStats: {
-    total: number;
-    compliant: number;
-    byAuth: { jwt: number; apiKey: number };
-    byType: { smart: number; individual: number };
-  };
-  security: SecurityFeature[];
-  database: DatabaseFeature[];
-  bestPractices: BestPractice[];
-  timestamp: string;
+  generatedAt: string;
 }
 
 // ============================================================================
@@ -78,79 +62,192 @@ interface ComplianceData {
 
 export default function ArchitectureComplianceTab() {
   const [data, setData] = useState<ComplianceData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'endpoints' | 'security' | 'database' | 'practices'>('endpoints');
-  const [filter, setFilter] = useState<string>('all');
-  const [searchTerm, setSearchTerm] = useState('');
-
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const [hasScanned, setHasScanned] = useState(false);
+  const [filter, setFilter] = useState<'all' | 'P0' | 'P1' | 'P2'>('all');
 
   const fetchData = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      // Fetch both reports
-      const [complianceResponse, healthResponse] = await Promise.all([
-        api.get('/admin/database?type=endpoint-compliance'),
-        api.get('/admin/database?type=architecture-compliance')
-      ]);
-
-      // Merge data
-      setData({
-        summary: {
-          overallScore: healthResponse.overall_score || 0,
-          endpointScore: complianceResponse.successRate || 0,
-          securityScore: healthResponse.category_scores?.security_implementation || 0,
-          databaseScore: healthResponse.category_scores?.database_schema || 0,
-        },
-        endpoints: complianceResponse.endpoints || [],
-        endpointStats: complianceResponse.stats || {
-          total: 0,
-          compliant: 0,
-          byAuth: { jwt: 0, apiKey: 0 },
-          byType: { smart: 0, individual: 0 }
-        },
-        security: healthResponse.security_features || [],
-        database: healthResponse.database_features || [],
-        bestPractices: healthResponse.best_practices || [],
-        timestamp: new Date().toISOString()
-      });
+      const response = await api.get('/admin/database?type=architecture-compliance');
+      
+      console.log('🏗️ Architecture Compliance Response:', response);
+      
+      if (response && response.success) {
+        setData(response as ComplianceData);
+        setHasScanned(true);
+        setError(null);
+      } else {
+        setError('Rapor yüklenemedi');
+        setHasScanned(true);
+      }
     } catch (err: any) {
+      console.error('❌ Architecture compliance error:', err);
       setError(err.message || 'Veri yüklenirken hata oluştu');
-      console.error('Architecture compliance fetch error:', err);
+      setHasScanned(true);
     } finally {
       setLoading(false);
     }
   };
 
+  // Raporu kopyala
+  const handleCopyReport = () => {
+    if (!data) return;
+    
+    const timestamp = new Date().toLocaleString('tr-TR');
+    
+    let report = `🏗️ MİMARİ & ROADMAP UYUMLULUK RAPORU
+${'='.repeat(60)}
+⏰ Tarih: ${timestamp}
+
+📊 GENEL ÖZET:
+${'='.repeat(60)}
+• Genel Compliance: ${data.summary.generalScore}%
+• Toplam Feature: ${data.summary.totalFeatures}
+• ✅ Uyumlu: ${data.summary.compliantCount} (${Math.round((data.summary.compliantCount/data.summary.totalFeatures)*100)}%)
+• ⚠️ Kısmi: ${data.summary.partialCount} (${Math.round((data.summary.partialCount/data.summary.totalFeatures)*100)}%)
+• ❌ Uyumsuz: ${data.summary.nonCompliantCount} (${Math.round((data.summary.nonCompliantCount/data.summary.totalFeatures)*100)}%)
+• 🔥 P0 Görevler: ${data.summary.p0Count}
+• ⚡ P1 Görevler: ${data.summary.p1Count}
+• 📊 P2 Görevler: ${data.summary.p2Count}
+
+${'='.repeat(60)}
+ROADMAP VS KOD MATRİSİ
+${'='.repeat(60)}
+
+`;
+    
+    data.features.forEach((feature) => {
+      const icon = feature.status === 'compliant' ? '✅' : feature.status === 'partial' ? '⚠️' : '❌';
+      const priorityIcon = feature.priority === 'P0' ? '🔥' : feature.priority === 'P1' ? '⚡' : '📊';
+      
+      report += `[${feature.id}] ${feature.name}
+├─ Roadmap: ${feature.roadmap}
+├─ Kod: ${feature.code}
+├─ Gap: ${feature.gap}%
+├─ Compliance: ${icon} ${feature.compliance}%
+└─ Öncelik: ${priorityIcon} ${feature.priority}
+
+`;
+    });
+    
+    if (data.actionPlan.p0.length > 0) {
+      report += `\n${'='.repeat(60)}\n`;
+      report += `🔥 P0 KRİTİK GÖREVLER (Bu Hafta):\n`;
+      report += `${'='.repeat(60)}\n\n`;
+      
+      data.actionPlan.p0.forEach((action, i) => {
+        report += `${i + 1}. ${action.feature}\n`;
+        report += `   └─ Action: ${action.action}\n\n`;
+      });
+    }
+    
+    report += `${'='.repeat(60)}\n`;
+    report += `📋 Rapor Sonu\n`;
+    report += `${'='.repeat(60)}\n`;
+    
+    navigator.clipboard.writeText(report).then(() => {
+      alert('✅ Rapor panoya kopyalandı!');
+    }).catch(() => {
+      alert('❌ Kopyalama başarısız!');
+    });
+  };
+
+  // Filtrelenmiş features
+  const filteredFeatures = data ? (
+    filter === 'all' ? data.features : data.features.filter(f => f.priority === filter)
+  ) : [];
+
   // ============================================================================
-  // LOADING & ERROR STATES
+  // İLK EKRAN - Tarama yapılmadıysa
+  // ============================================================================
+
+  if (!hasScanned && !loading) {
+    return (
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl p-6 text-white shadow-lg">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="bg-white/20 p-3 rounded-lg backdrop-blur-sm">
+              <Target size={24} />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold">🏗️ Mimari & Roadmap Uyumluluk</h2>
+              <p className="text-purple-100 mt-1">
+                Dokümantasyon vs Kod Uyum Analizi
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* İlk tarama ekranı */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+          <Target size={64} className="mx-auto text-purple-500 mb-6" />
+          <h3 className="text-2xl font-bold text-gray-800 mb-4">
+            Roadmap vs Kod Uyumunu Analiz Et
+          </h3>
+          <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
+            ANALIZ.md dosyasındaki Roadmap matrisini okuyup, kodunuzla karşılaştırır.
+            13 farklı feature'ın dokümantasyon-kod uyumunu gösterir.
+          </p>
+          <button
+            onClick={fetchData}
+            className="px-8 py-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all transform hover:scale-105 shadow-lg flex items-center gap-2 mx-auto"
+          >
+            <Target size={20} />
+            <span className="font-semibold">Taramayı Başlat</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ============================================================================
+  // LOADING STATE
   // ============================================================================
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">ANALIZ.md parse ediliyor...</p>
+        </div>
       </div>
     );
   }
 
+  // ============================================================================
+  // ERROR STATE
+  // ============================================================================
+
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-        <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-red-900 mb-2">Hata</h3>
-        <p className="text-red-700">{error}</p>
-        <button
-          onClick={fetchData}
-          className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-        >
-          Tekrar Dene
-        </button>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl p-6 text-white shadow-lg">
+          <div className="flex items-center gap-3">
+            <Target size={24} />
+            <h2 className="text-2xl font-bold">🏗️ Mimari & Roadmap Uyumluluk</h2>
+          </div>
+        </div>
+
+        {/* Error */}
+        <div className="bg-red-50 border border-red-200 rounded-lg p-8 text-center">
+          <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-red-900 mb-2">Hata</h3>
+          <p className="text-red-700 mb-6">{error}</p>
+          <button
+            onClick={fetchData}
+            className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors inline-flex items-center gap-2"
+          >
+            <RefreshCw size={18} />
+            <span>Tekrar Dene</span>
+          </button>
+        </div>
       </div>
     );
   }
@@ -158,353 +255,234 @@ export default function ArchitectureComplianceTab() {
   if (!data) return null;
 
   // ============================================================================
-  // FILTER & SEARCH
-  // ============================================================================
-
-  const filteredEndpoints = data.endpoints.filter(endpoint => {
-    const matchesFilter = filter === 'all' || endpoint.status === filter;
-    const matchesSearch = endpoint.endpoint.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         endpoint.method.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesFilter && matchesSearch;
-  });
-
-  // ============================================================================
-  // HELPER FUNCTIONS
-  // ============================================================================
-
-  const getScoreColor = (score: number): string => {
-    if (score >= 80) return 'text-green-600 bg-green-50 border-green-200';
-    if (score >= 60) return 'text-yellow-600 bg-yellow-50 border-yellow-200';
-    return 'text-red-600 bg-red-50 border-red-200';
-  };
-
-  const getStatusBadge = (status: string): JSX.Element => {
-    const configs = {
-      compliant: { bg: 'bg-green-100', text: 'text-green-800', icon: CheckCircle, label: 'Uyumlu' },
-      implemented: { bg: 'bg-green-100', text: 'text-green-800', icon: CheckCircle, label: 'Uygulandı' },
-      active: { bg: 'bg-green-100', text: 'text-green-800', icon: CheckCircle, label: 'Aktif' },
-      good: { bg: 'bg-green-100', text: 'text-green-800', icon: CheckCircle, label: 'İyi' },
-      
-      partial: { bg: 'bg-yellow-100', text: 'text-yellow-800', icon: AlertCircle, label: 'Kısmi' },
-      warning: { bg: 'bg-yellow-100', text: 'text-yellow-800', icon: AlertTriangle, label: 'Uyarı' },
-      
-      noncompliant: { bg: 'bg-red-100', text: 'text-red-800', icon: XCircle, label: 'Uyumsuz' },
-      missing: { bg: 'bg-red-100', text: 'text-red-800', icon: XCircle, label: 'Eksik' },
-      critical: { bg: 'bg-red-100', text: 'text-red-800', icon: AlertTriangle, label: 'Kritik' },
-      
-      unknown: { bg: 'bg-gray-100', text: 'text-gray-800', icon: AlertCircle, label: 'Bilinmiyor' },
-    };
-
-    const config = configs[status as keyof typeof configs] || configs.unknown;
-    const Icon = config.icon;
-
-    return (
-      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
-        <Icon className="h-3.5 w-3.5" />
-        {config.label}
-      </span>
-    );
-  };
-
-  // ============================================================================
-  // RENDER
+  // MAIN CONTENT
   // ============================================================================
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Mimari Uyumluluk Raporu</h2>
-          <p className="text-sm text-gray-600 mt-1">
-            Endpoint, Security, Database & Best Practices Analizi
-          </p>
+      <div className="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl p-6 text-white shadow-lg">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="bg-white/20 p-3 rounded-lg backdrop-blur-sm">
+              <Target size={24} />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold">🏗️ Mimari & Roadmap Uyumluluk</h2>
+              <p className="text-purple-100 mt-1">
+                Dokümantasyon vs Kod Uyum Analizi ({data.summary.totalFeatures} Feature)
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={handleCopyReport}
+              className="px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg transition-colors flex items-center gap-2"
+            >
+              <Copy size={18} />
+              <span>Raporu Kopyala</span>
+            </button>
+            <button
+              onClick={fetchData}
+              className="px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg transition-colors flex items-center gap-2"
+            >
+              <RefreshCw size={18} />
+              <span>Yenile</span>
+            </button>
+          </div>
         </div>
-        <button
-          onClick={fetchData}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          <RefreshCw className="h-4 w-4" />
-          Yenile
-        </button>
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {/* Overall Score */}
-        <div className={`border-2 rounded-lg p-4 ${getScoreColor(data.summary.overallScore)}`}>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-2">
-            <TrendingUp className="h-6 w-6" />
-            <span className="text-2xl font-bold">{data.summary.overallScore}%</span>
+            <span className="text-gray-600 text-sm font-medium">Genel Compliance</span>
+            <BarChart3 size={20} className="text-purple-500" />
           </div>
-          <div className="text-sm font-medium">Genel Skor</div>
+          <div className="text-3xl font-bold text-gray-900">{data.summary.generalScore}%</div>
+          <div className="mt-2 text-xs text-gray-500">{data.summary.totalFeatures} feature analiz edildi</div>
         </div>
 
-        {/* Endpoint Score */}
-        <div className={`border-2 rounded-lg p-4 ${getScoreColor(data.summary.endpointScore)}`}>
+        <div className="bg-green-50 rounded-xl shadow-sm border border-green-200 p-6">
           <div className="flex items-center justify-between mb-2">
-            <Globe className="h-6 w-6" />
-            <span className="text-2xl font-bold">{data.summary.endpointScore}%</span>
+            <span className="text-green-700 text-sm font-medium">✅ Uyumlu</span>
+            <CheckCircle size={20} className="text-green-500" />
           </div>
-          <div className="text-sm font-medium">Endpoint Uyumu</div>
-          <div className="text-xs mt-1 opacity-75">
-            {data.endpointStats.compliant}/{data.endpointStats.total} uyumlu
-          </div>
-        </div>
-
-        {/* Security Score */}
-        <div className={`border-2 rounded-lg p-4 ${getScoreColor(data.summary.securityScore)}`}>
-          <div className="flex items-center justify-between mb-2">
-            <Shield className="h-6 w-6" />
-            <span className="text-2xl font-bold">{data.summary.securityScore}%</span>
-          </div>
-          <div className="text-sm font-medium">Güvenlik</div>
-          <div className="text-xs mt-1 opacity-75">
-            {data.security.filter(s => s.status === 'implemented').length}/{data.security.length} feature
+          <div className="text-3xl font-bold text-green-900">{data.summary.compliantCount}</div>
+          <div className="mt-2 text-xs text-green-600">
+            {Math.round((data.summary.compliantCount/data.summary.totalFeatures)*100)}% compliance
           </div>
         </div>
 
-        {/* Database Score */}
-        <div className={`border-2 rounded-lg p-4 ${getScoreColor(data.summary.databaseScore)}`}>
+        <div className="bg-yellow-50 rounded-xl shadow-sm border border-yellow-200 p-6">
           <div className="flex items-center justify-between mb-2">
-            <Database className="h-6 w-6" />
-            <span className="text-2xl font-bold">{data.summary.databaseScore}%</span>
+            <span className="text-yellow-700 text-sm font-medium">⚠️ Kısmi</span>
+            <AlertCircle size={20} className="text-yellow-500" />
           </div>
-          <div className="text-sm font-medium">Database</div>
-          <div className="text-xs mt-1 opacity-75">
-            {data.database.filter(d => d.status === 'active').length}/{data.database.length} feature
+          <div className="text-3xl font-bold text-yellow-900">{data.summary.partialCount}</div>
+          <div className="mt-2 text-xs text-yellow-600">
+            {Math.round((data.summary.partialCount/data.summary.totalFeatures)*100)}% kısmi uyum
+          </div>
+        </div>
+
+        <div className="bg-red-50 rounded-xl shadow-sm border border-red-200 p-6">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-red-700 text-sm font-medium">❌ Uyumsuz</span>
+            <XCircle size={20} className="text-red-500" />
+          </div>
+          <div className="text-3xl font-bold text-red-900">{data.summary.nonCompliantCount}</div>
+          <div className="mt-2 text-xs text-red-600">
+            {Math.round((data.summary.nonCompliantCount/data.summary.totalFeatures)*100)}% uyumsuz
           </div>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="border-b border-gray-200">
-        <nav className="flex gap-6">
-          {[
-            { id: 'endpoints', label: 'Endpoint Analizi', icon: Globe },
-            { id: 'security', label: 'Security Features', icon: Shield },
-            { id: 'database', label: 'Database Features', icon: Database },
-            { id: 'practices', label: 'Best Practices', icon: Layers },
-          ].map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              onClick={() => setActiveTab(id as any)}
-              className={`flex items-center gap-2 px-4 py-3 border-b-2 font-medium transition-colors ${
-                activeTab === id
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
-              }`}
-            >
-              <Icon className="h-4 w-4" />
-              {label}
-            </button>
-          ))}
-        </nav>
+      {/* Filter Tabs */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+        <div className="flex gap-2">
+          <button
+            onClick={() => setFilter('all')}
+            className={`px-4 py-2 rounded-lg transition-colors ${
+              filter === 'all'
+                ? 'bg-purple-100 text-purple-700 font-medium'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            Tümü ({data.summary.totalFeatures})
+          </button>
+          <button
+            onClick={() => setFilter('P0')}
+            className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
+              filter === 'P0'
+                ? 'bg-red-100 text-red-700 font-medium'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <Flame size={16} />
+            P0 Kritik ({data.summary.p0Count})
+          </button>
+          <button
+            onClick={() => setFilter('P1')}
+            className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
+              filter === 'P1'
+                ? 'bg-yellow-100 text-yellow-700 font-medium'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <Zap size={16} />
+            P1 Önemli ({data.summary.p1Count})
+          </button>
+          <button
+            onClick={() => setFilter('P2')}
+            className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
+              filter === 'P2'
+                ? 'bg-blue-100 text-blue-700 font-medium'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <BarChart3 size={16} />
+            P2 Gelecek ({data.summary.p2Count})
+          </button>
+        </div>
       </div>
 
-      {/* Tab Content */}
-      <div>
-        {/* ENDPOINTS TAB */}
-        {activeTab === 'endpoints' && (
-          <div className="space-y-4">
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="text-2xl font-bold text-blue-900">{data.endpointStats.total}</div>
-                <div className="text-sm text-blue-700">Toplam Endpoint</div>
-              </div>
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <div className="text-2xl font-bold text-green-900">{data.endpointStats.compliant}</div>
-                <div className="text-sm text-green-700">Uyumlu</div>
-              </div>
-              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                <div className="text-2xl font-bold text-purple-900">{data.endpointStats.byAuth.apiKey}</div>
-                <div className="text-sm text-purple-700">API Key Auth</div>
-              </div>
-              <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
-                <div className="text-2xl font-bold text-indigo-900">{data.endpointStats.byType.smart}</div>
-                <div className="text-sm text-indigo-700">Smart/Generic</div>
-              </div>
-            </div>
-
-            {/* Filters */}
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Endpoint ara..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <div className="flex gap-2">
-                {['all', 'compliant', 'partial', 'noncompliant'].map((f) => (
-                  <button
-                    key={f}
-                    onClick={() => setFilter(f)}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                      filter === f
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    {f === 'all' ? 'Tümü' : f === 'compliant' ? 'Uyumlu' : f === 'partial' ? 'Kısmi' : 'Uyumsuz'}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Table */}
-            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-gray-200">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Method</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Endpoint</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Auth</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Type</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {filteredEndpoints.length === 0 ? (
-                      <tr>
-                        <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
-                          Sonuç bulunamadı
-                        </td>
-                      </tr>
-                    ) : (
-                      filteredEndpoints.map((endpoint, idx) => (
-                        <tr key={idx} className="hover:bg-gray-50">
-                          <td className="px-4 py-3">
-                            <span className={`inline-block px-2 py-1 rounded text-xs font-mono font-semibold ${
-                              endpoint.method === 'GET' ? 'bg-blue-100 text-blue-800' :
-                              endpoint.method === 'POST' ? 'bg-green-100 text-green-800' :
-                              endpoint.method === 'PUT' ? 'bg-yellow-100 text-yellow-800' :
-                              endpoint.method === 'PATCH' ? 'bg-orange-100 text-orange-800' :
-                              endpoint.method === 'DELETE' ? 'bg-red-100 text-red-800' :
-                              'bg-gray-100 text-gray-800'
-                            }`}>
-                              {endpoint.method}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 font-mono text-sm text-gray-900">{endpoint.endpoint}</td>
-                          <td className="px-4 py-3">
-                            <div className="text-sm">
-                              <div className={endpoint.authMatch ? 'text-green-700' : 'text-red-700'}>
-                                {endpoint.currentAuth}
-                              </div>
-                              {!endpoint.authMatch && (
-                                <div className="text-xs text-gray-500">Expected: {endpoint.expectedAuth}</div>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="text-sm">
-                              <div className={endpoint.typeMatch ? 'text-green-700' : 'text-red-700'}>
-                                {endpoint.currentType}
-                              </div>
-                              {!endpoint.typeMatch && (
-                                <div className="text-xs text-gray-500">Expected: {endpoint.expectedType}</div>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-4 py-3">{getStatusBadge(endpoint.status)}</td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* SECURITY TAB */}
-        {activeTab === 'security' && (
-          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Feature</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Status</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Details</th>
+      {/* Features Table */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Feature</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Roadmap</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kod</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gap</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Compliance</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Öncelik</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredFeatures.map((feature) => (
+                <tr key={feature.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{feature.id}</td>
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{feature.name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{feature.roadmap}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{feature.code}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      feature.gap === 0 ? 'bg-green-100 text-green-700' :
+                      feature.gap < 50 ? 'bg-yellow-100 text-yellow-700' :
+                      'bg-red-100 text-red-700'
+                    }`}>
+                      {feature.gap}%
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <div className="flex items-center gap-2">
+                      {feature.status === 'compliant' && <CheckCircle size={16} className="text-green-500" />}
+                      {feature.status === 'partial' && <AlertCircle size={16} className="text-yellow-500" />}
+                      {feature.status === 'non_compliant' && <XCircle size={16} className="text-red-500" />}
+                      <span className={`font-medium ${
+                        feature.status === 'compliant' ? 'text-green-700' :
+                        feature.status === 'partial' ? 'text-yellow-700' :
+                        'text-red-700'
+                      }`}>
+                        {feature.compliance}%
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 w-fit ${
+                      feature.priority === 'P0' ? 'bg-red-100 text-red-700' :
+                      feature.priority === 'P1' ? 'bg-yellow-100 text-yellow-700' :
+                      'bg-blue-100 text-blue-700'
+                    }`}>
+                      {feature.priority === 'P0' && <Flame size={12} />}
+                      {feature.priority === 'P1' && <Zap size={12} />}
+                      {feature.priority === 'P2' && <BarChart3 size={12} />}
+                      {feature.priority}
+                    </span>
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {data.security.map((item, idx) => (
-                  <tr key={idx} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium text-gray-900">{item.feature}</td>
-                    <td className="px-4 py-3">{getStatusBadge(item.status)}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{item.details}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* DATABASE TAB */}
-        {activeTab === 'database' && (
-          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Feature</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Status</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Count</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Details</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {data.database.map((item, idx) => (
-                  <tr key={idx} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium text-gray-900">{item.feature}</td>
-                    <td className="px-4 py-3">{getStatusBadge(item.status)}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{item.count || '-'}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{item.details}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* BEST PRACTICES TAB */}
-        {activeTab === 'practices' && (
-          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Category</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Status</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Description</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Recommendation</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {data.bestPractices.map((item, idx) => (
-                  <tr key={idx} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium text-gray-900">{item.category}</td>
-                    <td className="px-4 py-3">{getStatusBadge(item.status)}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{item.description}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{item.recommendation || '-'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      {/* Footer */}
-      <div className="text-center text-sm text-gray-500">
-        Son güncelleme: {new Date(data.timestamp).toLocaleString('tr-TR')}
-      </div>
+      {/* P0 Action Plan */}
+      {data.actionPlan.p0.length > 0 && (
+        <div className="bg-red-50 rounded-xl shadow-sm border border-red-200 p-6">
+          <h3 className="text-lg font-bold text-red-900 mb-4 flex items-center gap-2">
+            <Flame size={20} className="text-red-600" />
+            🔥 P0 KRİTİK GÖREVLER (Bu Hafta)
+          </h3>
+          <div className="space-y-3">
+            {data.actionPlan.p0.map((action, index) => (
+              <div key={index} className="bg-white rounded-lg p-4 border border-red-200">
+                <div className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                    {index + 1}
+                  </span>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-gray-900 mb-1">{action.feature}</h4>
+                    <p className="text-sm text-gray-600 mb-2">Gap: {action.gap}%</p>
+                    <p className="text-sm text-gray-700 bg-gray-50 rounded px-3 py-2">
+                      ▸ {action.action}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 p-4 bg-red-100 rounded-lg">
+            <p className="text-sm text-red-900">
+              <strong>Hedef:</strong> Bu görevler tamamlandığında compliance <strong>{data.summary.generalScore}% → 65-70%</strong> olacak
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
