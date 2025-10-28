@@ -366,7 +366,7 @@ export default function BackendStructureTab({ markdownContent }: BackendStructur
       <div className="bg-white border border-gray-200 rounded-lg p-4">
         <h3 className="font-semibold text-gray-900 mb-4">Dosya Yapısı</h3>
         <div className="space-y-1">
-          <DirectoryNodeComponent node={tree} level={0} />
+          <DirectoryNodeComponent key={filter} node={tree} level={0} />
         </div>
       </div>
     </div>
