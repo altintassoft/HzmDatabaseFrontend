@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Search, ChevronDown, ChevronUp, Database, Filter, X, Eye, RefreshCw, Copy, Check } from 'lucide-react';
-import api from '../../../../services/api';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Search, ChevronDown, ChevronUp, Database, Filter, X, Eye, RefreshCw, Copy, Check } from 'lucide-react';
 
 // 🚀 NO MORE MOCK DATA! Dynamic data from backend API
 
@@ -34,7 +34,8 @@ interface TableData {
   data: any[];
 }
 
-const BackendTablesTab = () => {
+const BackendTablesPage = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [schemaFilter, setSchemaFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -64,8 +65,15 @@ const BackendTablesTab = () => {
     setIsLoadingTables(true);
     setTablesError(null);
     try {
+      const API_URL = import.meta.env.VITE_API_URL || '/api/v1';
       // 🎯 MASTER ADMIN ENDPOINT - Tek endpoint, tüm işlemler!
-      const data = await api.get('/admin/database?type=tables&include=columns,indexes,rls,fk');
+      const response = await fetch(`${API_URL}/admin/database?type=tables&include=columns,indexes,rls,fk`);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch tables: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
       
       // 🐛 DEBUG: Response yapısını görelim
       console.log('📋 TABLES RESPONSE:', {
@@ -110,13 +118,20 @@ const BackendTablesTab = () => {
     setIsLoadingData(true);
     setDataError(null);
     try {
+      const API_URL = import.meta.env.VITE_API_URL || '/api/v1';
       // 🎯 MASTER ADMIN ENDPOINT - Single table with data
-      const fetchUrl = `/admin/database?type=table&schema=${schema}&table=${table}&include=data&limit=100`;
+      const fetchUrl = `${API_URL}/admin/database?type=table&schema=${schema}&table=${table}&include=data&limit=100`;
       
       // 🐛 DEBUG: URL'i görelim
       console.log('🔗 FETCH URL:', fetchUrl);
       
-      const data = await api.get(fetchUrl);
+      const response = await fetch(fetchUrl);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch data: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
       
       // 🐛 DEBUG: Response yapısını görelim
       console.log('📊 TABLE DATA RESPONSE:', {
@@ -300,38 +315,63 @@ const BackendTablesTab = () => {
   };
 
   return (
-    <div>
-      {/* Header Actions */}
-      <div className="flex justify-end gap-2 mb-6">
-        <button
-          onClick={fetchTables}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition-colors"
-          disabled={isLoadingTables}
-          title="Backend'den tabloları yenile"
-        >
-          <RefreshCw size={20} className={`mr-2 ${isLoadingTables ? 'animate-spin' : ''}`} />
-          Yenile
-        </button>
-        <button
-          onClick={copyAllTables}
-          className="flex items-center px-4 py-2 bg-purple-600 text-white hover:bg-purple-700 rounded-lg transition-colors"
-        >
-          {copiedTable === 'all' ? (
-            <>
-              <Check size={20} className="mr-2" />
-              Kopyalandı!
-            </>
-          ) : (
-            <>
-              <Copy size={20} className="mr-2" />
-              Tümünü Kopyala
-            </>
-          )}
-        </button>
-      </div>
+    <div className="min-h-screen bg-slate-50">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={() => navigate('/dashboard')}
+                  className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <ArrowLeft size={20} className="mr-2" />
+                  Geri
+                </button>
+                <div className="flex items-center space-x-3">
+                  <Database className="text-blue-600" size={32} />
+                  <div>
+                    <h1 className="text-2xl font-bold text-gray-800">Backend Tabloları</h1>
+                    <p className="text-sm text-gray-600">Railway PostgreSQL Tablo Envanteri</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex gap-2">
+                <button
+                  onClick={fetchTables}
+                  className="flex items-center px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition-colors"
+                  disabled={isLoadingTables}
+                  title="Backend'den tabloları yenile"
+                >
+                  <RefreshCw size={20} className={`mr-2 ${isLoadingTables ? 'animate-spin' : ''}`} />
+                  Yenile
+                </button>
+                <button
+                  onClick={copyAllTables}
+                  className="flex items-center px-4 py-2 bg-purple-600 text-white hover:bg-purple-700 rounded-lg transition-colors"
+                >
+                  {copiedTable === 'all' ? (
+                    <>
+                      <Check size={20} className="mr-2" />
+                      Kopyalandı!
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={20} className="mr-2" />
+                      Tümünü Kopyala
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
 
-      {/* Content */}
-      <div>
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-8">
         {/* Filters */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <div className="grid md:grid-cols-3 gap-4">
@@ -618,7 +658,7 @@ const BackendTablesTab = () => {
             </div>
           </div>
         </div>
-      </div>
+      </main>
 
       {/* Data Modal */}
       {showDataModal && (
@@ -744,5 +784,5 @@ const BackendTablesTab = () => {
   );
 };
 
-export default BackendTablesTab;
+export default BackendTablesPage;
 

@@ -12,7 +12,7 @@ import RegisterPage from './pages/common/register/RegisterPage';
 
 // Customer Pages
 import DashboardPage from './pages/customer/dashboard/DashboardPage';
-import DatabasePricing from './pages/customer/pricing/DatabasePricing';
+import DatabasePricingPage from './pages/customer/pricing/DatabasePricingPage';
 import UserSettingsPage from './pages/customer/settings/UserSettingsPage';
 
 // Project Pages
@@ -22,9 +22,9 @@ import ProjectDataPage from './pages/projects/data/ProjectDataPage';
 
 // Admin Pages
 import AdminPage from './pages/admin/dashboard/AdminDashboardPage';
-import DatabaseUsers from './pages/admin/database-users/DatabaseUsers';
-import DatabaseProjects from './pages/admin/database-projects/DatabaseProjects';
-import DatabaseState from './pages/admin/database-state/DatabaseState';
+import DatabaseUsersPage from './pages/admin/database-users/DatabaseUsersPage';
+import DatabaseProjectsPage from './pages/admin/database-projects/DatabaseProjectsPage';
+import DatabaseStatePage from './pages/admin/database-state/DatabaseStatePage';
 import UpgradePlanPage from './pages/admin/upgrade-plan/UpgradePlanPage';
 import BackendReportsPage from './pages/admin/reports';
 
@@ -152,25 +152,25 @@ function App() {
             {/* Database Management Routes */}
             <Route path="/database/users" element={
               <AdminRoute>
-                <DatabaseUsers />
+                <DatabaseUsersPage />
               </AdminRoute>
             } />
             
             <Route path="/database/projects" element={
               <AdminRoute>
-                <DatabaseProjects />
+                <DatabaseProjectsPage />
               </AdminRoute>
             } />
             
             <Route path="/database/state" element={
               <AdminRoute>
-                <DatabaseState />
+                <DatabaseStatePage />
               </AdminRoute>
             } />
             
             <Route path="/database/pricing" element={
               <AdminRoute>
-                <DatabasePricing />
+                <DatabasePricingPage />
               </AdminRoute>
             } />
             
