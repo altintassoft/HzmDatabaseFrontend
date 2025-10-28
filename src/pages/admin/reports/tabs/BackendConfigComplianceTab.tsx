@@ -171,10 +171,68 @@ const BackendConfigComplianceTab = () => {
     return 'bg-red-500';
   };
 
+  // Raporu kopyala fonksiyonu
+  const handleCopyReport = () => {
+    const timestamp = new Date().toLocaleString('tr-TR');
+    
+    let report = `🔧 BACKEND KONFIGURASYON UYUMU RAPORU
+${'='.repeat(60)}
+⏰ Tarih: ${timestamp}
+
+📊 GENEL ÖZET:
+${'='.repeat(60)}
+• Genel Compliance: ${averageScore}%
+• Analiz Edilen Kural: 20
+• ✅ Uyumlu: ${uyumluCount} (${Math.round((uyumluCount/20)*100)}%)
+• ⚠️ Kısmi: ${kısmiCount} (${Math.round((kısmiCount/20)*100)}%)
+• ❌ Uyumsuz: ${uyumsuzCount} (${Math.round((uyumsuzCount/20)*100)}%)
+
+${'='.repeat(60)}
+DETAYLI ANALIZ
+${'='.repeat(60)}
+
+`;
+
+    backendRules.forEach((rule) => {
+      const icon = rule.durum === 'uyumlu' ? '✅' : rule.durum === 'kısmi' ? '⚠️' : rule.durum === 'uyumsuz' ? '❌' : '➖';
+      
+      report += `[${rule.bölüm}] ${rule.kural}
+├─ Durum: ${icon} ${rule.durum.charAt(0).toUpperCase() + rule.durum.slice(1)} (${rule.yüzde}%)
+├─ Açıklama: ${rule.açıklama}`;
+      
+      if (rule.öneri) {
+        report += `\n└─ Öneri: ${rule.öneri}`;
+      }
+      
+      report += '\n\n';
+    });
+
+    report += `${'='.repeat(60)}\n`;
+    report += `📋 Rapor Sonu\n`;
+    report += `${'='.repeat(60)}\n`;
+
+    navigator.clipboard.writeText(report).then(() => {
+      alert('✅ Rapor panoya kopyalandı!');
+    }).catch(() => {
+      alert('❌ Kopyalama başarısız!');
+    });
+  };
+
   return (
     <div className="space-y-6">
-      {/* Yeniden Tara Butonu */}
-      <div className="flex justify-end">
+      {/* Yeniden Tara ve Kopyala Butonları */}
+      <div className="flex justify-end gap-2">
+        <button
+          onClick={handleCopyReport}
+          disabled={!backendRules.length}
+          className="px-4 py-2 bg-gray-600 text-white font-medium rounded-lg hover:bg-gray-700 transition-all shadow-sm hover:shadow-md flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+          Raporu Kopyala
+        </button>
+        
         <button
           onClick={handleScan}
           disabled={loading}
