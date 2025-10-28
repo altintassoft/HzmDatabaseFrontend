@@ -26,7 +26,7 @@ import DatabaseUsers from './pages/admin/database-users/DatabaseUsers';
 import DatabaseProjects from './pages/admin/database-projects/DatabaseProjects';
 import DatabaseState from './pages/admin/database-state/DatabaseState';
 import UpgradePlanPage from './pages/admin/upgrade-plan/UpgradePlanPage';
-import BackendReportsPage from './pages/admin/reports/BackendReportsPage';
+import BackendReportsPage from './pages/admin/reports';
 
 // Master Admin Pages
 import SystemSettingsPage from './pages/master-admin/system-settings/SystemSettingsPage';
