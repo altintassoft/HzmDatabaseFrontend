@@ -1,10 +1,20 @@
 import { useState } from 'react';
 import { RefreshCw, Clock, Database, ChevronDown, ChevronRight, Eye } from 'lucide-react';
 import { useAIKnowledgeBase } from '../../../../hooks/useAIKnowledgeBase';
+import TableDataModal from '../../../../components/shared/TableDataModal';
+import api from '../../../../services/api';
 
 export default function BackendTablesTab() {
   const { report, generating, error, generateReport } = useAIKnowledgeBase('backend_tables');
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  
+  // Modal state
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalSchema, setModalSchema] = useState('');
+  const [modalTable, setModalTable] = useState('');
+  const [modalData, setModalData] = useState<any>(null);
+  const [modalLoading, setModalLoading] = useState(false);
+  const [modalError, setModalError] = useState<string | null>(null);
 
   const toggleRow = (tableFullName: string) => {
     const newExpanded = new Set(expandedRows);
@@ -16,9 +26,28 @@ export default function BackendTablesTab() {
     setExpandedRows(newExpanded);
   };
 
-  const openTableData = (schema: string, table: string) => {
-    const url = `https://hzmdatabasebackend-production.up.railway.app/api/v1/data/${schema}.${table}`;
-    window.open(url, '_blank');
+  const openTableData = async (schema: string, table: string) => {
+    setModalSchema(schema);
+    setModalTable(table);
+    setModalOpen(true);
+    setModalLoading(true);
+    setModalError(null);
+    setModalData(null);
+
+    try {
+      const response = await api.get(`/admin/table-data/${schema}/${table}?limit=50&offset=0`);
+      
+      if (response.success) {
+        setModalData(response);
+      } else {
+        setModalError(response.message || 'Veri yüklenemedi');
+      }
+    } catch (err: any) {
+      console.error('Failed to fetch table data:', err);
+      setModalError(err.message || 'Tablo verisi yüklenirken bir hata oluştu');
+    } finally {
+      setModalLoading(false);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -46,17 +75,29 @@ export default function BackendTablesTab() {
   const reportData = parseReport();
 
   return (
-    <div className="space-y-6">
+    <>
+      {/* Modal */}
+      <TableDataModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        schema={modalSchema}
+        table={modalTable}
+        data={modalData}
+        loading={modalLoading}
+        error={modalError}
+      />
+
+      <div className="space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-500 to-cyan-600 rounded-xl p-6 text-white shadow-lg">
+        <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl p-6 text-white shadow-lg">
           <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="bg-white/20 p-3 rounded-lg backdrop-blur-sm">
-              <Database size={24} />
-            </div>
+            <div className="flex items-center gap-3">
+              <div className="bg-white/20 p-3 rounded-lg backdrop-blur-sm">
+                <Database size={24} />
+              </div>
                   <div>
-              <h2 className="text-2xl font-bold">📊 Backend Tabloları</h2>
-              <p className="text-blue-100 mt-1">Railway PostgreSQL Tablo Envanteri</p>
+                <h2 className="text-2xl font-bold">🔱 Master Admin Paneli</h2>
+                <p className="text-purple-100 mt-1">Tüm Tenant'lar - Sistem Geneli Kontrol</p>
                 </div>
               </div>
               
@@ -286,5 +327,6 @@ export default function BackendTablesTab() {
         </div>
       )}
     </div>
+    </>
   );
 }
