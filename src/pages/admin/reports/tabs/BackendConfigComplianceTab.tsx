@@ -31,7 +31,7 @@ const BackendConfigComplianceTab = () => {
   const [error, setError] = useState<string | null>(null);
   const [hasScanned, setHasScanned] = useState(false);
 
-  // Manuel tarama fonksiyonu
+  // Manuel tarama fonksiyonu (+ AI KB'ye kaydet)
   const handleScan = async () => {
     try {
       setLoading(true);
@@ -46,6 +46,14 @@ const BackendConfigComplianceTab = () => {
         setBackendRules(response.backend);
         setHasScanned(true);
         setError(null);
+        
+        // Raporu AI KB'ye kaydet (non-blocking)
+        try {
+          await api.post('/admin/generate-report?type=backend_config');
+          console.log('✅ Report saved to AI Knowledge Base');
+        } catch (saveErr) {
+          console.warn('⚠️  Failed to save to AI KB:', saveErr);
+        }
       } else {
         console.error('❌ Backend rules empty or invalid:', response);
         setError('Backend taraması başarısız. Lütfen tekrar deneyin.');
