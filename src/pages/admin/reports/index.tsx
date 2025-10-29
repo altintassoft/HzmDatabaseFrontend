@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Database, Activity, GitCompare, Target, FolderTree, Settings } from 'lucide-react';
+import { ArrowLeft, Database, Activity, GitCompare, Settings } from 'lucide-react';
 import BackendTablesTab from './tabs/BackendTablesTab';
 import MigrationSchemaTab from './tabs/MigrationSchemaTab';
 import ArchitectureComplianceTab from './tabs/ArchitectureComplianceTab';
-import { PlanComplianceTab } from './tabs/PlanComplianceTab';
-import ProjectStructureReportTab from './tabs/ProjectStructureReportTab';
 import ConfigurationComplianceTab from './tabs/ConfigurationComplianceTab';
 
-type TabType = 'tables' | 'migration-schema' | 'architecture' | 'plan' | 'project-structure' | 'configuration';
+type TabType = 'tables' | 'migration-schema' | 'architecture' | 'configuration';
 
 const BackendReportsPage = () => {
   const navigate = useNavigate();
@@ -39,18 +37,14 @@ const BackendReportsPage = () => {
     console.log('✅ User Role Set:', userRole);
   }, []);
 
-  // 🔒 ROLE-BASED TAB VISIBILITY: Migration/Schema, Architecture, Plan, Project Structure, Configuration tab'ları sadece admin ve master_admin için
+  // 🔒 ROLE-BASED TAB VISIBILITY: Migration/Schema, Architecture, Configuration tab'ları sadece admin ve master_admin için
   const showMigrationSchemaTab = ['admin', 'master_admin'].includes(userRole);
   const showArchitectureTab = ['admin', 'master_admin'].includes(userRole);
-  const showPlanTab = ['admin', 'master_admin'].includes(userRole);
-  const showProjectStructureTab = ['admin', 'master_admin'].includes(userRole);
   const showConfigurationTab = ['admin', 'master_admin'].includes(userRole);
   
   console.log('🎭 Current User Role:', userRole);
   console.log('📊 Show Migration/Schema Tab:', showMigrationSchemaTab);
   console.log('🏗️  Show Architecture Tab:', showArchitectureTab);
-  console.log('🎯 Show Plan Tab:', showPlanTab);
-  console.log('📁 Show Project Structure Tab:', showProjectStructureTab);
   console.log('⚙️  Show Configuration Tab:', showConfigurationTab);
 
   return (
@@ -123,36 +117,6 @@ const BackendReportsPage = () => {
               </button>
             )}
 
-            {/* Plan Compliance - Sadece admin ve master_admin */}
-            {showPlanTab && (
-              <button
-                onClick={() => setActiveTab('plan')}
-                className={`flex items-center gap-2 px-6 py-4 font-medium transition-all ${
-                  activeTab === 'plan'
-                    ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                }`}
-              >
-                <Target size={20} />
-                <span>🎯 Plan Uyumu</span>
-              </button>
-            )}
-
-            {/* Project Structure - Sadece admin ve master_admin */}
-            {showProjectStructureTab && (
-              <button
-                onClick={() => setActiveTab('project-structure')}
-                className={`flex items-center gap-2 px-6 py-4 font-medium transition-all ${
-                  activeTab === 'project-structure'
-                    ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                }`}
-              >
-                <FolderTree size={20} />
-                <span>📁 Proje Yapısı</span>
-              </button>
-            )}
-
             {/* Configuration Compliance - Sadece admin ve master_admin */}
             {showConfigurationTab && (
               <button
@@ -187,20 +151,6 @@ const BackendReportsPage = () => {
             {showArchitectureTab && (
               <div className={activeTab === 'architecture' ? 'block' : 'hidden'}>
                 <ArchitectureComplianceTab />
-              </div>
-            )}
-
-            {/* Plan Tab */}
-            {showPlanTab && (
-              <div className={activeTab === 'plan' ? 'block' : 'hidden'}>
-                <PlanComplianceTab />
-              </div>
-            )}
-
-            {/* Project Structure Tab */}
-            {showProjectStructureTab && (
-              <div className={activeTab === 'project-structure' ? 'block' : 'hidden'}>
-                <ProjectStructureReportTab />
               </div>
             )}
 
