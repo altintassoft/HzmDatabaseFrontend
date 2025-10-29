@@ -1,14 +1,8 @@
-import { useEffect } from 'react';
 import { RefreshCw, Clock, FileCode } from 'lucide-react';
 import { useAIKnowledgeBase } from '../../../../hooks/useAIKnowledgeBase';
 
 export default function MigrationSchemaTab() {
-  const { report, loading, generating, error, fetchLatestReport, generateReport } = useAIKnowledgeBase('migration_schema');
-
-  // Otomatik yükleme: Sayfa açılınca varsa getir
-  useEffect(() => {
-    fetchLatestReport();
-  }, []);
+  const { report, generating, error, generateReport } = useAIKnowledgeBase('migration_schema');
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -59,16 +53,15 @@ export default function MigrationSchemaTab() {
       </div>
 
       {/* Last Update Info */}
-      {report && !loading && !generating && (
-        <div className="bg-gradient-to-r from-green-500/10 to-teal-500/10 backdrop-blur-sm border border-green-500/30 rounded-lg p-4">
-          <div className="flex items-center gap-3 text-sm">
-            <Clock size={18} className="text-green-400" />
-            <span className="text-white font-medium">Son Güncelleme:</span>
-            <span className="text-green-200">{formatDate(report.updated_at)}</span>
+      {report && !generating && (
+        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-4">
+          <div className="flex items-center gap-2 text-sm text-gray-300">
+            <Clock size={16} />
+            <span>Son Oluşturma: {formatDate(report.updated_at)}</span>
             {report.description && (
               <>
-                <span className="text-green-400/50">•</span>
-                <span className="text-green-100/80">{report.description}</span>
+                <span className="text-gray-600">•</span>
+                <span className="text-gray-400">{report.description}</span>
               </>
             )}
           </div>
@@ -77,22 +70,14 @@ export default function MigrationSchemaTab() {
 
       {/* Error */}
       {error && (
-        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
-          <p className="text-red-300 font-medium">❌ {error}</p>
+        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+          <p className="text-red-400">❌ {error}</p>
           <button
             onClick={generateReport}
-            className="mt-2 text-sm text-red-200 hover:text-red-100 underline font-medium"
+            className="mt-2 text-sm text-red-300 hover:text-red-200 underline"
           >
             Tekrar Dene
           </button>
-        </div>
-      )}
-
-      {/* Loading */}
-      {loading && (
-        <div className="flex items-center justify-center py-12">
-          <RefreshCw size={32} className="animate-spin text-blue-400" />
-          <span className="ml-3 text-white font-medium">Rapor yükleniyor...</span>
         </div>
       )}
 
@@ -100,12 +85,12 @@ export default function MigrationSchemaTab() {
       {generating && (
         <div className="flex items-center justify-center py-12">
           <RefreshCw size={32} className="animate-spin text-green-400" />
-          <span className="ml-3 text-white font-medium">Yeni rapor oluşturuluyor...</span>
+          <span className="ml-3 text-gray-300">Rapor oluşturuluyor...</span>
         </div>
       )}
 
       {/* No Report */}
-      {!loading && !generating && !error && !report && (
+      {!generating && !error && !report && (
         <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-12 text-center">
           <FileCode size={48} className="mx-auto text-gray-500 mb-4" />
           <p className="text-gray-400 mb-4">Henüz rapor oluşturulmamış</p>
@@ -120,40 +105,28 @@ export default function MigrationSchemaTab() {
       )}
 
       {/* Report Content */}
-      {!loading && !generating && !error && report && reportData && (
-        <div className="space-y-6">
+      {!generating && !error && report && reportData && (
+        <div className="space-y-4">
           {/* Schema Info */}
           {reportData.schemas && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {reportData.schemas.map((schema: any, index: number) => (
-                <div key={index} className="bg-gradient-to-br from-green-500/20 to-teal-600/10 backdrop-blur-sm border-2 border-green-400/40 rounded-xl p-6 shadow-lg hover:shadow-green-500/20 transition-all">
-                  <div className="flex items-center gap-2 mb-3">
-                    <FileCode size={20} className="text-green-300" />
-                    <div className="text-xs text-green-200 font-bold uppercase tracking-wider">{schema.schema_name}</div>
+                <div key={index} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-4">
+                  <div className="text-sm text-gray-400">{schema.schema_name}</div>
+                  <div className="text-2xl font-bold text-white mt-1">
+                    {schema.table_count} tablo
                   </div>
-                  <div className="text-4xl font-extrabold text-white mb-2">
-                    {schema.table_count}
+                  <div className="text-xs text-gray-500 mt-2">
+                    {schema.total_size || 'N/A'}
                   </div>
-                  <div className="text-sm text-green-100/80">
-                    {schema.table_count === 1 ? 'tablo' : 'tablo'}
-                  </div>
-                  {schema.total_size && (
-                    <div className="mt-3 pt-3 border-t border-green-400/20">
-                      <div className="text-xs text-green-200/70">{schema.total_size}</div>
-                    </div>
-                  )}
                 </div>
               ))}
             </div>
           )}
 
           {/* Raw Data */}
-          <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 shadow-xl">
-            <div className="flex items-center gap-2 mb-4">
-              <FileCode size={22} className="text-blue-400" />
-              <h3 className="text-lg font-bold text-white">Schema Detayları (JSON)</h3>
-            </div>
-            <pre className="text-sm text-gray-100 overflow-x-auto bg-gray-900/50 p-5 rounded-lg font-mono leading-relaxed">
+          <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-4">
+            <pre className="text-sm text-gray-300 overflow-x-auto">
               {JSON.stringify(reportData, null, 2)}
             </pre>
           </div>

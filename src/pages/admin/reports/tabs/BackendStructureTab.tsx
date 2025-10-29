@@ -1,14 +1,8 @@
-import { useEffect } from 'react';
 import { RefreshCw, Clock, FolderTree } from 'lucide-react';
 import { useAIKnowledgeBase } from '../../../../hooks/useAIKnowledgeBase';
 
 export default function BackendStructureTab() {
-  const { report, loading, generating, error, fetchLatestReport, generateReport } = useAIKnowledgeBase('backend_structure');
-
-  // Otomatik yükleme: Sayfa açılınca varsa getir
-  useEffect(() => {
-    fetchLatestReport();
-  }, []);
+  const { report, generating, error, generateReport } = useAIKnowledgeBase('backend_structure');
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -47,16 +41,15 @@ export default function BackendStructureTab() {
       </div>
 
       {/* Last Update Info */}
-      {report && !loading && !generating && (
-        <div className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 backdrop-blur-sm border border-purple-500/30 rounded-lg p-4">
-          <div className="flex items-center gap-3 text-sm">
-            <Clock size={18} className="text-purple-400" />
-            <span className="text-white font-medium">Son Güncelleme:</span>
-            <span className="text-purple-200">{formatDate(report.updated_at)}</span>
+      {report && !generating && (
+        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-4">
+          <div className="flex items-center gap-2 text-sm text-gray-300">
+            <Clock size={16} />
+            <span>Son Oluşturma: {formatDate(report.updated_at)}</span>
             {report.description && (
               <>
-                <span className="text-purple-400/50">•</span>
-                <span className="text-purple-100/80">{report.description}</span>
+                <span className="text-gray-600">•</span>
+                <span className="text-gray-400">{report.description}</span>
               </>
             )}
           </div>
@@ -65,22 +58,14 @@ export default function BackendStructureTab() {
 
       {/* Error */}
       {error && (
-        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
-          <p className="text-red-300 font-medium">❌ {error}</p>
+        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+          <p className="text-red-400">❌ {error}</p>
           <button
             onClick={generateReport}
-            className="mt-2 text-sm text-red-200 hover:text-red-100 underline font-medium"
+            className="mt-2 text-sm text-red-300 hover:text-red-200 underline"
           >
             Tekrar Dene
           </button>
-        </div>
-      )}
-
-      {/* Loading */}
-      {loading && (
-        <div className="flex items-center justify-center py-12">
-          <RefreshCw size={32} className="animate-spin text-blue-400" />
-          <span className="ml-3 text-white font-medium">Rapor yükleniyor...</span>
         </div>
       )}
 
@@ -88,12 +73,12 @@ export default function BackendStructureTab() {
       {generating && (
         <div className="flex items-center justify-center py-12">
           <RefreshCw size={32} className="animate-spin text-purple-400" />
-          <span className="ml-3 text-white font-medium">Yeni rapor oluşturuluyor...</span>
+          <span className="ml-3 text-gray-300">Rapor oluşturuluyor...</span>
         </div>
       )}
 
       {/* No Report */}
-      {!loading && !generating && !error && !report && (
+      {!generating && !error && !report && (
         <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-12 text-center">
           <FolderTree size={48} className="mx-auto text-gray-500 mb-4" />
           <p className="text-gray-400 mb-4">Henüz rapor oluşturulmamış</p>
@@ -109,9 +94,14 @@ export default function BackendStructureTab() {
 
       {/* Report Content - Markdown */}
       {!generating && !error && report && (
-        <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-lg p-6 shadow-xl">
-          <div className="prose prose-invert prose-lg max-w-none">
-            <pre className="whitespace-pre-wrap text-base leading-relaxed text-gray-100 font-mono bg-gray-900/50 p-6 rounded-lg overflow-x-auto">
+        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6">
+          <div
+            className="prose prose-invert prose-sm max-w-none"
+            style={{
+              color: '#e5e7eb',
+            }}
+          >
+            <pre className="whitespace-pre-wrap text-sm leading-relaxed">
               {report.content}
             </pre>
           </div>
