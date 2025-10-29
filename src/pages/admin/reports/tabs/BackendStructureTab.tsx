@@ -349,6 +349,57 @@ export default function BackendStructureTab() {
               </button>
             )}
             <button
+              onClick={() => {
+                // Generate tree structure text with lines
+                const generateTreeText = (node: DirectoryNode, prefix: string = '', isLast: boolean = true): string => {
+                  let result = '';
+                  const connector = isLast ? '└── ' : '├── ';
+                  const extension = isLast ? '    ' : '│   ';
+                  
+                  if (node.type === 'folder') {
+                    result += prefix + connector + node.name + '/\n';
+                    const childPrefix = prefix + extension;
+                    
+                    const children = node.children || [];
+                    const files = node.files || [];
+                    const totalItems = children.length + files.length;
+                    
+                    children.forEach((child, index) => {
+                      const isLastChild = index === totalItems - 1;
+                      result += generateTreeText(child, childPrefix, isLastChild);
+                    });
+                    
+                    files.forEach((file, idx) => {
+                      const status = file.status === 'critical' ? '🔴🔴🔴' : 
+                                     file.status === 'urgent' ? '🔴🔴' :
+                                     file.status === 'danger' ? '🔴' :
+                                     file.status === 'warning' ? '⚠️' : '✅';
+                      const actualIndex = children.length + idx;
+                      const isLastItem = actualIndex === totalItems - 1;
+                      const fileConnector = isLastItem ? '└── ' : '├── ';
+                      result += childPrefix + fileConnector + `${file.name} (${file.lines} satır) ${status}\n`;
+                    });
+                  }
+                  return result;
+                };
+                
+                let treeText = 'Backend Dosya Yapısı\n';
+                treeText += '='.repeat(50) + '\n\n';
+                treeText += generateTreeText(tree);
+                
+                navigator.clipboard.writeText(treeText).then(() => {
+                  alert('✅ Tüm ağaç yapısı kopyalandı!');
+                }).catch(err => {
+                  console.error('Kopyalama hatası:', err);
+                  alert('❌ Kopyalama başarısız!');
+                });
+              }}
+              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+            >
+              <span>📋</span>
+              <span>Tüm Ağacı Kopyala</span>
+            </button>
+            <button
               onClick={fetchReport}
               className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors"
             >
