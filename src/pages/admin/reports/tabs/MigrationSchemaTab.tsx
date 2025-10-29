@@ -1,13 +1,8 @@
-import { useEffect } from 'react';
 import { RefreshCw, Clock, FileCode } from 'lucide-react';
 import { useAIKnowledgeBase } from '../../../../hooks/useAIKnowledgeBase';
 
 export default function MigrationSchemaTab() {
-  const { report, loading, generating, error, fetchLatestReport, generateReport } = useAIKnowledgeBase('migration_schema');
-
-  useEffect(() => {
-    fetchLatestReport();
-  }, []);
+  const { report, generating, error, generateReport } = useAIKnowledgeBase('migration_schema');
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -58,11 +53,11 @@ export default function MigrationSchemaTab() {
       </div>
 
       {/* Last Update Info */}
-      {report && !loading && (
+      {report && !generating && (
         <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-4">
           <div className="flex items-center gap-2 text-sm text-gray-300">
             <Clock size={16} />
-            <span>Son Güncelleme: {formatDate(report.updated_at)}</span>
+            <span>Son Oluşturma: {formatDate(report.updated_at)}</span>
             {report.description && (
               <>
                 <span className="text-gray-600">•</span>
@@ -78,7 +73,7 @@ export default function MigrationSchemaTab() {
         <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
           <p className="text-red-400">❌ {error}</p>
           <button
-            onClick={fetchLatestReport}
+            onClick={generateReport}
             className="mt-2 text-sm text-red-300 hover:text-red-200 underline"
           >
             Tekrar Dene
@@ -86,16 +81,16 @@ export default function MigrationSchemaTab() {
         </div>
       )}
 
-      {/* Loading */}
-      {loading && (
+      {/* Generating */}
+      {generating && (
         <div className="flex items-center justify-center py-12">
           <RefreshCw size={32} className="animate-spin text-green-400" />
-          <span className="ml-3 text-gray-300">Yükleniyor...</span>
+          <span className="ml-3 text-gray-300">Rapor oluşturuluyor...</span>
         </div>
       )}
 
       {/* No Report */}
-      {!loading && !error && !report && (
+      {!generating && !error && !report && (
         <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-12 text-center">
           <FileCode size={48} className="mx-auto text-gray-500 mb-4" />
           <p className="text-gray-400 mb-4">Henüz rapor oluşturulmamış</p>
@@ -110,7 +105,7 @@ export default function MigrationSchemaTab() {
       )}
 
       {/* Report Content */}
-      {!loading && !error && report && reportData && (
+      {!generating && !error && report && reportData && (
         <div className="space-y-4">
           {/* Schema Info */}
           {reportData.schemas && (
