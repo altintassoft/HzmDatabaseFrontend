@@ -9,7 +9,7 @@ import {
   Zap,
   BarChart3,
   Copy,
-  Sync
+  RotateCw
 } from 'lucide-react';
 import api from '../../../../services/api';
 
@@ -315,7 +315,7 @@ ${'='.repeat(60)}
               className="px-4 py-2 bg-green-500/90 hover:bg-green-600 backdrop-blur-sm rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               title="ANALIZ.md'yi Configuration Compliance ile senkronize et"
             >
-              <Sync size={18} className={syncing ? 'animate-spin' : ''} />
+              <RotateCw size={18} className={syncing ? 'animate-spin' : ''} />
               <span>{syncing ? 'Senkronize ediliyor...' : 'Senkronize Et'}</span>
             </button>
             <button
