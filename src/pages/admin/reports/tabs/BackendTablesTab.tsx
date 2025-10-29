@@ -1,8 +1,25 @@
-import { RefreshCw, Clock, Database } from 'lucide-react';
+import { useState } from 'react';
+import { RefreshCw, Clock, Database, ChevronDown, ChevronRight, Eye } from 'lucide-react';
 import { useAIKnowledgeBase } from '../../../../hooks/useAIKnowledgeBase';
 
 export default function BackendTablesTab() {
   const { report, generating, error, generateReport } = useAIKnowledgeBase('backend_tables');
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+
+  const toggleRow = (tableFullName: string) => {
+    const newExpanded = new Set(expandedRows);
+    if (newExpanded.has(tableFullName)) {
+      newExpanded.delete(tableFullName);
+    } else {
+      newExpanded.add(tableFullName);
+    }
+    setExpandedRows(newExpanded);
+  };
+
+  const openTableData = (schema: string, table: string) => {
+    const url = `https://hzmdatabasebackend-production.up.railway.app/api/v1/data/${schema}.${table}`;
+    window.open(url, '_blank');
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -131,7 +148,7 @@ export default function BackendTablesTab() {
                   {reportData.summary.total_schemas || 0}
                 </div>
                 <div className="mt-2 text-xs text-green-600">Farklı schema</div>
-              </div>
+                            </div>
               <div className="bg-purple-50 rounded-xl shadow-sm border border-purple-200 p-6">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-purple-700 text-sm font-medium">Toplam Sütun</span>
@@ -141,7 +158,7 @@ export default function BackendTablesTab() {
                   {reportData.summary.total_columns || 0}
                 </div>
                 <div className="mt-2 text-xs text-purple-600">Tüm sütunlar</div>
-              </div>
+                  </div>
               <div className="bg-orange-50 rounded-xl shadow-sm border border-orange-200 p-6">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-orange-700 text-sm font-medium">Toplam Index</span>
@@ -149,7 +166,7 @@ export default function BackendTablesTab() {
                 </div>
                 <div className="text-3xl font-bold text-orange-900">
                   {reportData.summary.total_indexes || 0}
-                </div>
+            </div>
                 <div className="mt-2 text-xs text-orange-600">Performans indexleri</div>
               </div>
             </div>
@@ -167,18 +184,79 @@ export default function BackendTablesTab() {
                       <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Sütun Sayısı</th>
                       <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Index Sayısı</th>
                       <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Satır Sayısı</th>
+                      <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">İşlemler</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {reportData.tables.map((table: any, index: number) => (
-                      <tr key={index} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4 text-sm text-blue-600 font-medium">{table.schema_name}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900 font-semibold">{table.table_name}</td>
-                        <td className="px-6 py-4 text-sm text-gray-600">{table.column_count}</td>
-                        <td className="px-6 py-4 text-sm text-gray-600">{table.index_count}</td>
-                        <td className="px-6 py-4 text-sm text-gray-600">{table.row_count?.toLocaleString() || 'N/A'}</td>
-                      </tr>
-                    ))}
+                    {reportData.tables.map((table: any, index: number) => {
+                      const fullName = `${table.schema_name}.${table.table_name}`;
+                      const isExpanded = expandedRows.has(fullName);
+                      
+                      return (
+                        <>
+                          <tr key={index} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-6 py-4 text-sm text-blue-600 font-medium">{table.schema_name}</td>
+                            <td className="px-6 py-4 text-sm text-gray-900 font-semibold">{table.table_name}</td>
+                            <td className="px-6 py-4 text-sm text-gray-600">{table.column_count}</td>
+                            <td className="px-6 py-4 text-sm text-gray-600">{table.index_count}</td>
+                            <td className="px-6 py-4 text-sm text-gray-600">{table.row_count?.toLocaleString() || 'N/A'}</td>
+                            <td className="px-6 py-4 text-right">
+                              <div className="flex items-center justify-end gap-2">
+                <button
+                                  onClick={() => openTableData(table.schema_name, table.table_name)}
+                                  className="p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                                  title="Tablo verilerini görüntüle"
+                                >
+                                  <Eye size={18} className="text-blue-600" />
+                </button>
+                <button
+                                  onClick={() => toggleRow(fullName)}
+                                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                  title={isExpanded ? 'Sütunları gizle' : 'Sütunları göster'}
+                                >
+                                  {isExpanded ? (
+                                    <ChevronDown size={18} className="text-gray-600" />
+                                  ) : (
+                                    <ChevronRight size={18} className="text-gray-600" />
+                                  )}
+                </button>
+                              </div>
+                            </td>
+                          </tr>
+                          
+                          {/* Expanded Row - Columns */}
+                          {isExpanded && table.columns && (
+                            <tr key={`${index}-expanded`}>
+                              <td colSpan={6} className="px-6 py-4 bg-gray-50">
+                                <div className="pl-8">
+                                  <h4 className="text-sm font-semibold text-gray-700 mb-3">📋 Sütunlar ({table.columns.length})</h4>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                    {table.columns.map((col: any, colIndex: number) => (
+                                      <div key={colIndex} className="bg-white border border-gray-200 rounded-lg p-3">
+                                        <div className="flex items-start justify-between">
+                                          <div className="flex-1">
+                                            <div className="font-medium text-sm text-gray-900">{col.column_name}</div>
+                                            <div className="text-xs text-blue-600 mt-1">{col.data_type}</div>
+                                          </div>
+                                          {col.is_nullable === 'NO' && (
+                                            <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded">NOT NULL</span>
+                                          )}
+                                        </div>
+                                        {col.column_default && (
+                                          <div className="text-xs text-gray-500 mt-2">
+                                            Default: {col.column_default}
+                                          </div>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
