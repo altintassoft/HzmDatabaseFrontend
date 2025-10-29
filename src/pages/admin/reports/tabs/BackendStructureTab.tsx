@@ -94,14 +94,9 @@ export default function BackendStructureTab() {
 
       {/* Report Content - Markdown */}
       {!generating && !error && report && (
-        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6">
-          <div
-            className="prose prose-invert prose-sm max-w-none"
-            style={{
-              color: '#e5e7eb',
-            }}
-          >
-            <pre className="whitespace-pre-wrap text-sm leading-relaxed">
+        <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-lg p-6 shadow-xl">
+          <div className="prose prose-invert prose-lg max-w-none">
+            <pre className="whitespace-pre-wrap text-base leading-relaxed text-gray-100 font-mono bg-gray-900/50 p-6 rounded-lg overflow-x-auto">
               {report.content}
             </pre>
           </div>

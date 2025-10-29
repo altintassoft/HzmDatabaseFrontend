@@ -111,13 +111,13 @@ export default function MigrationSchemaTab() {
           {reportData.schemas && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {reportData.schemas.map((schema: any, index: number) => (
-                <div key={index} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-4">
-                  <div className="text-sm text-gray-400">{schema.schema_name}</div>
-                  <div className="text-2xl font-bold text-white mt-1">
+                <div key={index} className="bg-green-500/10 backdrop-blur-sm border border-green-500/30 rounded-lg p-5">
+                  <div className="text-sm text-green-300 font-semibold uppercase tracking-wide">{schema.schema_name}</div>
+                  <div className="text-3xl font-bold text-white mt-2">
                     {schema.table_count} tablo
                   </div>
-                  <div className="text-xs text-gray-500 mt-2">
-                    {schema.total_size || 'N/A'}
+                  <div className="text-sm text-green-200/70 mt-2">
+                    {schema.total_size || 'Boyut bilgisi yok'}
                   </div>
                 </div>
               ))}
@@ -125,8 +125,9 @@ export default function MigrationSchemaTab() {
           )}
 
           {/* Raw Data */}
-          <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-4">
-            <pre className="text-sm text-gray-300 overflow-x-auto">
+          <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-lg p-6 shadow-xl">
+            <h3 className="text-lg font-bold text-white mb-4">📋 Schema Detayları (JSON)</h3>
+            <pre className="text-sm text-gray-100 overflow-x-auto bg-gray-900/50 p-4 rounded">
               {JSON.stringify(reportData, null, 2)}
             </pre>
           </div>

@@ -110,27 +110,27 @@ export default function BackendTablesTab() {
           {/* Summary Cards */}
           {reportData.summary && (
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-4">
-                <div className="text-sm text-gray-400">Toplam Tablo</div>
-                <div className="text-2xl font-bold text-white mt-1">
+              <div className="bg-blue-500/10 backdrop-blur-sm border border-blue-500/30 rounded-lg p-4">
+                <div className="text-sm text-blue-300 font-medium">Toplam Tablo</div>
+                <div className="text-3xl font-bold text-white mt-2">
                   {reportData.summary.total_tables || 0}
                 </div>
               </div>
-              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-4">
-                <div className="text-sm text-gray-400">Schema</div>
-                <div className="text-2xl font-bold text-white mt-1">
+              <div className="bg-green-500/10 backdrop-blur-sm border border-green-500/30 rounded-lg p-4">
+                <div className="text-sm text-green-300 font-medium">Schema</div>
+                <div className="text-3xl font-bold text-white mt-2">
                   {reportData.summary.total_schemas || 0}
                 </div>
               </div>
-              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-4">
-                <div className="text-sm text-gray-400">Toplam Sütun</div>
-                <div className="text-2xl font-bold text-white mt-1">
+              <div className="bg-purple-500/10 backdrop-blur-sm border border-purple-500/30 rounded-lg p-4">
+                <div className="text-sm text-purple-300 font-medium">Toplam Sütun</div>
+                <div className="text-3xl font-bold text-white mt-2">
                   {reportData.summary.total_columns || 0}
                 </div>
               </div>
-              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-4">
-                <div className="text-sm text-gray-400">Toplam Index</div>
-                <div className="text-2xl font-bold text-white mt-1">
+              <div className="bg-orange-500/10 backdrop-blur-sm border border-orange-500/30 rounded-lg p-4">
+                <div className="text-sm text-orange-300 font-medium">Toplam Index</div>
+                <div className="text-3xl font-bold text-white mt-2">
                   {reportData.summary.total_indexes || 0}
                 </div>
               </div>
@@ -139,26 +139,26 @@ export default function BackendTablesTab() {
 
           {/* Tables List */}
           {reportData.tables && (
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg overflow-hidden">
+            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-lg overflow-hidden shadow-xl">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-white/5">
+                  <thead className="bg-gray-700/50">
                     <tr>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Schema</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Tablo</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Sütun Sayısı</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Index Sayısı</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Satır Sayısı</th>
+                      <th className="px-6 py-4 text-left text-sm font-bold text-white uppercase tracking-wider">Schema</th>
+                      <th className="px-6 py-4 text-left text-sm font-bold text-white uppercase tracking-wider">Tablo</th>
+                      <th className="px-6 py-4 text-left text-sm font-bold text-white uppercase tracking-wider">Sütun Sayısı</th>
+                      <th className="px-6 py-4 text-left text-sm font-bold text-white uppercase tracking-wider">Index Sayısı</th>
+                      <th className="px-6 py-4 text-left text-sm font-bold text-white uppercase tracking-wider">Satır Sayısı</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5">
+                  <tbody className="divide-y divide-gray-700">
                     {reportData.tables.map((table: any, index: number) => (
-                      <tr key={index} className="hover:bg-white/5 transition-colors">
-                        <td className="px-4 py-3 text-sm text-blue-400">{table.schema_name}</td>
-                        <td className="px-4 py-3 text-sm text-white font-medium">{table.table_name}</td>
-                        <td className="px-4 py-3 text-sm text-gray-300">{table.column_count}</td>
-                        <td className="px-4 py-3 text-sm text-gray-300">{table.index_count}</td>
-                        <td className="px-4 py-3 text-sm text-gray-300">{table.row_count?.toLocaleString() || 'N/A'}</td>
+                      <tr key={index} className="hover:bg-gray-700/30 transition-colors">
+                        <td className="px-6 py-4 text-sm font-semibold text-blue-400">{table.schema_name}</td>
+                        <td className="px-6 py-4 text-sm font-medium text-white">{table.table_name}</td>
+                        <td className="px-6 py-4 text-sm text-gray-200">{table.column_count}</td>
+                        <td className="px-6 py-4 text-sm text-gray-200">{table.index_count}</td>
+                        <td className="px-6 py-4 text-sm text-gray-200">{table.row_count?.toLocaleString() || 'N/A'}</td>
                       </tr>
                     ))}
                   </tbody>
