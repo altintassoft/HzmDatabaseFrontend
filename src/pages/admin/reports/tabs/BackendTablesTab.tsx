@@ -1,8 +1,14 @@
+import { useEffect } from 'react';
 import { RefreshCw, Clock, Database } from 'lucide-react';
 import { useAIKnowledgeBase } from '../../../../hooks/useAIKnowledgeBase';
 
 export default function BackendTablesTab() {
-  const { report, generating, error, generateReport } = useAIKnowledgeBase('backend_tables');
+  const { report, loading, generating, error, fetchLatestReport, generateReport } = useAIKnowledgeBase('backend_tables');
+
+  // Otomatik yükleme: Sayfa açılınca varsa getir
+  useEffect(() => {
+    fetchLatestReport();
+  }, []);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -53,15 +59,16 @@ export default function BackendTablesTab() {
       </div>
 
       {/* Last Update Info */}
-      {report && !generating && (
-        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-4">
-          <div className="flex items-center gap-2 text-sm text-gray-300">
-            <Clock size={16} />
-            <span>Son Oluşturma: {formatDate(report.updated_at)}</span>
+      {report && !loading && !generating && (
+        <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 backdrop-blur-sm border border-blue-500/30 rounded-lg p-4">
+          <div className="flex items-center gap-3 text-sm">
+            <Clock size={18} className="text-blue-400" />
+            <span className="text-white font-medium">Son Güncelleme:</span>
+            <span className="text-blue-200">{formatDate(report.updated_at)}</span>
             {report.description && (
               <>
-                <span className="text-gray-600">•</span>
-                <span className="text-gray-400">{report.description}</span>
+                <span className="text-blue-400/50">•</span>
+                <span className="text-blue-100/80">{report.description}</span>
               </>
             )}
           </div>
@@ -70,27 +77,35 @@ export default function BackendTablesTab() {
 
       {/* Error */}
       {error && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
-          <p className="text-red-400">❌ {error}</p>
+        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+          <p className="text-red-300 font-medium">❌ {error}</p>
           <button
             onClick={generateReport}
-            className="mt-2 text-sm text-red-300 hover:text-red-200 underline"
+            className="mt-2 text-sm text-red-200 hover:text-red-100 underline font-medium"
           >
             Tekrar Dene
           </button>
         </div>
       )}
 
+      {/* Loading */}
+      {loading && (
+        <div className="flex items-center justify-center py-12">
+          <RefreshCw size={32} className="animate-spin text-blue-400" />
+          <span className="ml-3 text-white font-medium">Rapor yükleniyor...</span>
+        </div>
+      )}
+
       {/* Generating */}
       {generating && (
         <div className="flex items-center justify-center py-12">
-          <RefreshCw size={32} className="animate-spin text-blue-400" />
-          <span className="ml-3 text-gray-300">Rapor oluşturuluyor...</span>
+          <RefreshCw size={32} className="animate-spin text-green-400" />
+          <span className="ml-3 text-white font-medium">Yeni rapor oluşturuluyor...</span>
         </div>
       )}
 
       {/* No Report */}
-      {!generating && !error && !report && (
+      {!loading && !generating && !error && !report && (
         <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-12 text-center">
           <Database size={48} className="mx-auto text-gray-500 mb-4" />
           <p className="text-gray-400 mb-4">Henüz rapor oluşturulmamış</p>
@@ -105,34 +120,38 @@ export default function BackendTablesTab() {
       )}
 
       {/* Report Content */}
-      {!generating && !error && report && reportData && (
-        <div className="space-y-4">
+      {!loading && !generating && !error && report && reportData && (
+        <div className="space-y-6">
           {/* Summary Cards */}
           {reportData.summary && (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-blue-500/10 backdrop-blur-sm border border-blue-500/30 rounded-lg p-4">
-                <div className="text-sm text-blue-300 font-medium">Toplam Tablo</div>
-                <div className="text-3xl font-bold text-white mt-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-gradient-to-br from-blue-500/20 to-blue-600/10 backdrop-blur-sm border-2 border-blue-400/40 rounded-xl p-5 shadow-lg hover:shadow-blue-500/20 transition-all">
+                <div className="text-xs text-blue-200 font-bold uppercase tracking-wider mb-2">Toplam Tablo</div>
+                <div className="text-4xl font-extrabold text-white">
                   {reportData.summary.total_tables || 0}
                 </div>
+                <div className="text-xs text-blue-300/70 mt-1">veritabanı tablosu</div>
               </div>
-              <div className="bg-green-500/10 backdrop-blur-sm border border-green-500/30 rounded-lg p-4">
-                <div className="text-sm text-green-300 font-medium">Schema</div>
-                <div className="text-3xl font-bold text-white mt-2">
+              <div className="bg-gradient-to-br from-green-500/20 to-green-600/10 backdrop-blur-sm border-2 border-green-400/40 rounded-xl p-5 shadow-lg hover:shadow-green-500/20 transition-all">
+                <div className="text-xs text-green-200 font-bold uppercase tracking-wider mb-2">Schema</div>
+                <div className="text-4xl font-extrabold text-white">
                   {reportData.summary.total_schemas || 0}
                 </div>
+                <div className="text-xs text-green-300/70 mt-1">farklı schema</div>
               </div>
-              <div className="bg-purple-500/10 backdrop-blur-sm border border-purple-500/30 rounded-lg p-4">
-                <div className="text-sm text-purple-300 font-medium">Toplam Sütun</div>
-                <div className="text-3xl font-bold text-white mt-2">
+              <div className="bg-gradient-to-br from-purple-500/20 to-purple-600/10 backdrop-blur-sm border-2 border-purple-400/40 rounded-xl p-5 shadow-lg hover:shadow-purple-500/20 transition-all">
+                <div className="text-xs text-purple-200 font-bold uppercase tracking-wider mb-2">Toplam Sütun</div>
+                <div className="text-4xl font-extrabold text-white">
                   {reportData.summary.total_columns || 0}
                 </div>
+                <div className="text-xs text-purple-300/70 mt-1">tüm sütunlar</div>
               </div>
-              <div className="bg-orange-500/10 backdrop-blur-sm border border-orange-500/30 rounded-lg p-4">
-                <div className="text-sm text-orange-300 font-medium">Toplam Index</div>
-                <div className="text-3xl font-bold text-white mt-2">
+              <div className="bg-gradient-to-br from-orange-500/20 to-orange-600/10 backdrop-blur-sm border-2 border-orange-400/40 rounded-xl p-5 shadow-lg hover:shadow-orange-500/20 transition-all">
+                <div className="text-xs text-orange-200 font-bold uppercase tracking-wider mb-2">Toplam Index</div>
+                <div className="text-4xl font-extrabold text-white">
                   {reportData.summary.total_indexes || 0}
                 </div>
+                <div className="text-xs text-orange-300/70 mt-1">performans indexi</div>
               </div>
             </div>
           )}

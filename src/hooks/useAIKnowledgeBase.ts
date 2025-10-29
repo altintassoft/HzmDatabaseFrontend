@@ -14,22 +14,56 @@ interface Report {
 
 interface UseAIKnowledgeBaseReturn {
   report: Report | null;
+  loading: boolean;
   generating: boolean;
   error: string | null;
+  fetchLatestReport: () => Promise<void>;
   generateReport: () => Promise<void>;
 }
 
 export const useAIKnowledgeBase = (reportType: string): UseAIKnowledgeBaseReturn => {
   const [report, setReport] = useState<Report | null>(null);
+  const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Fetch latest report from AI KB (if exists)
+  const fetchLatestReport = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await api.get('/admin/knowledge-base', {
+        params: {
+          report_type: reportType,
+          limit: 1,
+          sort: 'updated_at:desc'
+        }
+      });
+
+      if (response.data && response.data.length > 0) {
+        setReport(response.data[0]);
+      } else {
+        setReport(null);
+      }
+    } catch (err: any) {
+      console.error('Failed to fetch report:', err);
+      // Not an error if report doesn't exist yet
+      if (!err.message?.includes('403')) {
+        setError(err.message || 'Rapor yüklenemedi');
+      }
+      setReport(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Generate new report (admin can do this)
   const generateReport = async () => {
     try {
       setGenerating(true);
       setError(null);
 
-      // Generate report and get content directly (no AI KB fetch needed)
       const response = await api.post(`/admin/generate-report?type=${reportType}`);
 
       if (response.success && response.report) {
@@ -47,8 +81,10 @@ export const useAIKnowledgeBase = (reportType: string): UseAIKnowledgeBaseReturn
 
   return {
     report,
+    loading,
     generating,
     error,
+    fetchLatestReport,
     generateReport
   };
 };
