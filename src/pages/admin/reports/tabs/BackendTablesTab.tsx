@@ -246,22 +246,20 @@ export default function BackendTablesTab() {
                                             else if (col.constraint.startsWith('FK')) constraints.push(`🔗 ${col.constraint}`);
                                             else if (col.constraint === 'UNIQUE') constraints.push('⭐ UNIQUE');
                                             else if (col.constraint === 'NOT NULL') constraints.push('🚫 NOT NULL');
-                                          } else if (col.is_nullable === 'NO') {
-                                            constraints.push('🚫 NOT NULL');
                                           }
                                           
-                                          if (col.column_default) {
-                                            constraints.push(`📌 DEFAULT: ${col.column_default}`);
+                                          if (col.default) {
+                                            constraints.push(`📌 DEFAULT: ${col.default}`);
                                           }
 
                                           return (
                                             <tr key={colIndex} className="hover:bg-gray-50 transition-colors">
                                               <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                                                {col.column_name}
+                                                {col.name}
                                               </td>
                                               <td className="px-4 py-3 text-sm text-gray-600">
                                                 <div className="flex flex-col gap-1">
-                                                  <span className="text-blue-600 font-medium">{col.data_type}</span>
+                                                  <span className="text-blue-600 font-medium">{col.type}</span>
                                                   {constraints.length > 0 && (
                                                     <span className="text-xs text-gray-500">{constraints.join(' • ')}</span>
                                                   )}
