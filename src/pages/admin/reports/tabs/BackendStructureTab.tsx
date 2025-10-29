@@ -229,9 +229,13 @@ export default function BackendStructureTab() {
         params: { type: 'project-structure', target: 'backend' }
       });
       
+      console.log('📊 Backend Structure Response:', response);
+      console.log('📄 Content length:', response?.content?.length);
+      
       if (response && response.content) {
         setMarkdownContent(response.content);
       } else {
+        console.warn('❌ No content in response:', response);
         setError('Rapor içeriği bulunamadı');
       }
     } catch (err: any) {
