@@ -31,25 +31,27 @@ export default function MigrationSchemaTab() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-green-500/10 rounded-lg">
-            <FileCode size={24} className="text-green-400" />
+      <div className="bg-gradient-to-r from-green-500 to-teal-600 rounded-xl p-6 text-white shadow-lg">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="bg-white/20 p-3 rounded-lg backdrop-blur-sm">
+              <FileCode size={24} />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold">📋 Migration & Schema</h2>
+              <p className="text-green-100 mt-1">Veritabanı Schema Durumu</p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-xl font-bold text-white">Migration & Schema</h2>
-            <p className="text-gray-400 text-sm">Veritabanı Schema Durumu</p>
-          </div>
-        </div>
 
-        <button
-          onClick={generateReport}
-          disabled={generating}
-          className="px-4 py-2 bg-green-500/90 hover:bg-green-600 backdrop-blur-sm rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <RefreshCw size={18} className={generating ? 'animate-spin' : ''} />
-          <span>{generating ? 'Oluşturuluyor...' : '🔄 Rapor Oluştur'}</span>
-        </button>
+          <button
+            onClick={generateReport}
+            disabled={generating}
+            className="px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <RefreshCw size={18} className={generating ? 'animate-spin' : ''} />
+            <span>{generating ? 'Oluşturuluyor...' : '🔄 Rapor Oluştur'}</span>
+          </button>
+        </div>
       </div>
 
       {/* Last Update Info */}
@@ -111,22 +113,34 @@ export default function MigrationSchemaTab() {
           {reportData.schemas && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {reportData.schemas.map((schema: any, index: number) => (
-                <div key={index} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-4">
-                  <div className="text-sm text-gray-400">{schema.schema_name}</div>
-                  <div className="text-2xl font-bold text-white mt-1">
-                    {schema.table_count} tablo
+                <div key={index} className="bg-green-50 rounded-xl shadow-sm border border-green-200 p-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-green-700 text-sm font-medium uppercase tracking-wide">{schema.schema_name}</span>
+                    <FileCode size={20} className="text-green-500" />
                   </div>
-                  <div className="text-xs text-gray-500 mt-2">
-                    {schema.total_size || 'N/A'}
+                  <div className="text-3xl font-bold text-green-900 mb-1">
+                    {schema.table_count}
                   </div>
+                  <div className="text-sm text-green-600 mb-3">
+                    {schema.table_count === 1 ? 'tablo' : 'tablo'}
+                  </div>
+                  {schema.total_size && (
+                    <div className="pt-3 border-t border-green-200">
+                      <div className="text-xs text-green-600">{schema.total_size}</div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
           )}
 
           {/* Raw Data */}
-          <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-4">
-            <pre className="text-sm text-gray-300 overflow-x-auto">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <FileCode size={22} className="text-gray-700" />
+              <h3 className="text-lg font-bold text-gray-900">Schema Detayları (JSON)</h3>
+            </div>
+            <pre className="text-sm text-gray-700 overflow-x-auto bg-gray-50 p-4 rounded-lg font-mono leading-relaxed">
               {JSON.stringify(reportData, null, 2)}
             </pre>
           </div>
