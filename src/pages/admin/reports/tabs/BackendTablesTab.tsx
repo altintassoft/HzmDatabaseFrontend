@@ -1,12 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { RefreshCw, Clock, Database, ChevronDown, ChevronRight, Eye } from 'lucide-react';
 import { useAIKnowledgeBase } from '../../../../hooks/useAIKnowledgeBase';
 import TableDataModal from '../../../../components/shared/TableDataModal';
 import api from '../../../../services/api';
 
 export default function BackendTablesTab() {
-  const { report, generating, error, generateReport } = useAIKnowledgeBase('backend_tables');
+  const { report, loading, generating, error, fetchLatestReport, generateReport } = useAIKnowledgeBase('backend_tables');
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+
+  // Otomatik yükleme: Sayfa açılınca varsa getir
+  useEffect(() => {
+    fetchLatestReport();
+  }, []);
   
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
@@ -101,19 +106,37 @@ export default function BackendTablesTab() {
                 </div>
               </div>
               
-                <button
-            onClick={generateReport}
-            disabled={generating}
-            className="px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <RefreshCw size={18} className={generating ? 'animate-spin' : ''} />
-            <span>{generating ? 'Oluşturuluyor...' : '🔄 Rapor Oluştur'}</span>
-                </button>
+          <div className="flex gap-2">
+            <button
+              onClick={fetchLatestReport}
+              disabled={loading || generating}
+              className="px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+              <span>Yenile</span>
+            </button>
+            <button
+              onClick={generateReport}
+              disabled={generating || loading}
+              className="px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <RefreshCw size={18} className={generating ? 'animate-spin' : ''} />
+              <span>{generating ? 'Oluşturuluyor...' : '🔄 Rapor Oluştur'}</span>
+            </button>
+          </div>
               </div>
             </div>
 
+      {/* Loading */}
+      {loading && (
+        <div className="flex items-center justify-center py-12">
+          <RefreshCw size={32} className="animate-spin text-blue-400" />
+          <span className="ml-3 text-white font-medium">Rapor yükleniyor...</span>
+        </div>
+      )}
+
       {/* Last Update Info */}
-      {report && !generating && (
+      {report && !loading && !generating && (
         <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-4">
           <div className="flex items-center gap-2 text-sm text-gray-300">
             <Clock size={16} />
@@ -150,7 +173,7 @@ export default function BackendTablesTab() {
       )}
 
       {/* No Report */}
-      {!generating && !error && !report && (
+      {!loading && !generating && !error && !report && (
         <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-12 text-center">
           <Database size={48} className="mx-auto text-gray-500 mb-4" />
           <p className="text-gray-400 mb-4">Henüz rapor oluşturulmamış</p>
@@ -165,7 +188,7 @@ export default function BackendTablesTab() {
                   )}
 
       {/* Report Content */}
-      {!generating && !error && report && reportData && (
+      {!loading && !generating && !error && report && reportData && (
         <div className="space-y-4">
           {/* Summary Cards */}
           {reportData.summary && (
