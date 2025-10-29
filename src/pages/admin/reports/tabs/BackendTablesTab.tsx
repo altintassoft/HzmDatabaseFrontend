@@ -229,26 +229,49 @@ export default function BackendTablesTab() {
                             <tr key={`${index}-expanded`}>
                               <td colSpan={6} className="px-6 py-4 bg-gray-50">
                                 <div className="pl-8">
-                                  <h4 className="text-sm font-semibold text-gray-700 mb-3">📋 Sütunlar ({table.columns.length})</h4>
-                                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                                    {table.columns.map((col: any, colIndex: number) => (
-                                      <div key={colIndex} className="bg-white border border-gray-200 rounded-lg p-3">
-                                        <div className="flex items-start justify-between">
-                                          <div className="flex-1">
-                                            <div className="font-medium text-sm text-gray-900">{col.column_name}</div>
-                                            <div className="text-xs text-blue-600 mt-1">{col.data_type}</div>
-                                          </div>
-                                          {col.is_nullable === 'NO' && (
-                                            <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded">NOT NULL</span>
-                                          )}
-                                        </div>
-                                        {col.column_default && (
-                                          <div className="text-xs text-gray-500 mt-2">
-                                            Default: {col.column_default}
-                                          </div>
-                                        )}
-                                      </div>
-                                    ))}
+                                  <h4 className="text-sm font-semibold text-gray-700 mb-4">📋 Sütunlar ({table.columns.length})</h4>
+                                  <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                                    <table className="w-full">
+                                      <thead className="bg-gray-50 border-b border-gray-200">
+                                        <tr>
+                                          <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Sütun Adı</th>
+                                          <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Veri Tipi & Özellikler</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody className="divide-y divide-gray-100">
+                                        {table.columns.map((col: any, colIndex: number) => {
+                                          const constraints = [];
+                                          if (col.constraint) {
+                                            if (col.constraint === 'PK') constraints.push('🔑 PRIMARY KEY');
+                                            else if (col.constraint.startsWith('FK')) constraints.push(`🔗 ${col.constraint}`);
+                                            else if (col.constraint === 'UNIQUE') constraints.push('⭐ UNIQUE');
+                                            else if (col.constraint === 'NOT NULL') constraints.push('🚫 NOT NULL');
+                                          } else if (col.is_nullable === 'NO') {
+                                            constraints.push('🚫 NOT NULL');
+                                          }
+                                          
+                                          if (col.column_default) {
+                                            constraints.push(`📌 DEFAULT: ${col.column_default}`);
+                                          }
+
+                                          return (
+                                            <tr key={colIndex} className="hover:bg-gray-50 transition-colors">
+                                              <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                                                {col.column_name}
+                                              </td>
+                                              <td className="px-4 py-3 text-sm text-gray-600">
+                                                <div className="flex flex-col gap-1">
+                                                  <span className="text-blue-600 font-medium">{col.data_type}</span>
+                                                  {constraints.length > 0 && (
+                                                    <span className="text-xs text-gray-500">{constraints.join(' • ')}</span>
+                                                  )}
+                                                </div>
+                                              </td>
+                                            </tr>
+                                          );
+                                        })}
+                                      </tbody>
+                                    </table>
                                   </div>
                                 </div>
                               </td>
