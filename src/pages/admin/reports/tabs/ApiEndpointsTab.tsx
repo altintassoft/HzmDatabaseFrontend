@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Zap, RefreshCw, Search, Filter } from 'lucide-react';
+import { Zap, RefreshCw, Search, Filter, Copy } from 'lucide-react';
 import api from '../../../../services/api';
 
 interface Endpoint {
@@ -128,14 +128,70 @@ export default function ApiEndpointsTab() {
             </div>
           </div>
 
-          <button
-            onClick={fetchEndpoints}
-            disabled={loading}
-            className="px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg transition-colors flex items-center gap-2"
-          >
-            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
-            <span>Yenile</span>
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                if (!data) return;
+                
+                // Generate table text
+                let tableText = 'API ENDPOINTS RAPORU\n';
+                tableText += '='.repeat(120) + '\n\n';
+                tableText += `Toplam: ${data.summary.total} endpoint\n`;
+                tableText += `Modül: ${Object.keys(data.summary.byModule).length}\n`;
+                tableText += `Aktif: ${data.summary.activeCount}\n\n`;
+                tableText += '='.repeat(120) + '\n\n';
+                
+                // Table header
+                tableText += 'Modül'.padEnd(12) + '│ ';
+                tableText += 'Method'.padEnd(8) + '│ ';
+                tableText += 'Endpoint'.padEnd(45) + '│ ';
+                tableText += 'Auth'.padEnd(18) + '│ ';
+                tableText += 'Strategy │ Naming │ Skor │ Durum\n';
+                tableText += '─'.repeat(120) + '\n';
+                
+                // Table rows
+                filteredEndpoints.forEach(endpoint => {
+                  tableText += endpoint.module.padEnd(12) + '│ ';
+                  tableText += endpoint.method.padEnd(8) + '│ ';
+                  tableText += endpoint.path.padEnd(45) + '│ ';
+                  tableText += endpoint.authType.padEnd(18) + '│ ';
+                  tableText += (endpoint.strategyCompliant ? '   ✅    ' : '   ❌    ') + '│ ';
+                  tableText += (endpoint.namingCompliant ? '   ✅   ' : '   ❌   ') + '│ ';
+                  tableText += (endpoint.complianceScore + '%').padEnd(6) + '│ ';
+                  tableText += endpoint.status === 'active' ? '✅ Aktif' : '⏸️ Pasif';
+                  tableText += '\n';
+                });
+                
+                tableText += '\n' + '='.repeat(120) + '\n\n';
+                
+                // Module distribution
+                tableText += 'MODÜL DAĞILIMI:\n\n';
+                Object.entries(data.summary.byModule).forEach(([module, count]) => {
+                  tableText += `${module.padEnd(15)}: ${count} endpoint\n`;
+                });
+                
+                // Copy to clipboard
+                navigator.clipboard.writeText(tableText).then(() => {
+                  alert('✅ API Endpoints raporu kopyalandı!');
+                }).catch(err => {
+                  console.error('Kopyalama hatası:', err);
+                  alert('❌ Kopyalama başarısız!');
+                });
+              }}
+              className="px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg transition-colors flex items-center gap-2"
+            >
+              <Copy size={18} />
+              <span>Raporu Kopyala</span>
+            </button>
+            <button
+              onClick={fetchEndpoints}
+              disabled={loading}
+              className="px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg transition-colors flex items-center gap-2"
+            >
+              <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+              <span>Yenile</span>
+            </button>
+          </div>
         </div>
       </div>
 
