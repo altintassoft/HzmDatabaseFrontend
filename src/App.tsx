@@ -136,7 +136,7 @@ function App() {
               </AdminRoute>
             } />
             
-            <Route path="/system-settings" element={
+            <Route path="/master-admin/system-settings" element={
               <AdminRoute>
                 <SystemSettingsPage />
               </AdminRoute>
