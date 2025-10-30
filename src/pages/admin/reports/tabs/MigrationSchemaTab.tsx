@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { RefreshCw, Clock, FileCode, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
 import api from '../../../../services/api';
+import { ENDPOINTS, REPORT_TYPES } from '../../../../constants/endpoints';
 
 export default function MigrationSchemaTab() {
   const [migrationReport, setMigrationReport] = useState<any>(null);
