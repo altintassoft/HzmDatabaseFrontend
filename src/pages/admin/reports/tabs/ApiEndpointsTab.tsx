@@ -8,6 +8,12 @@ interface Endpoint {
   path: string;
   authType: string;
   status: 'active' | 'disabled';
+  strategyCompliant: boolean;
+  namingCompliant: boolean;
+  authCompliant: boolean;
+  complianceScore: number;
+  issues: string[];
+  recommendations: string[];
 }
 
 interface EndpointData {
@@ -220,6 +226,9 @@ export default function ApiEndpointsTab() {
                 <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Method</th>
                 <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Endpoint</th>
                 <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Auth</th>
+                <th className="px-4 py-3 text-center text-xs font-bold text-gray-700 uppercase">Strategy</th>
+                <th className="px-4 py-3 text-center text-xs font-bold text-gray-700 uppercase">Naming</th>
+                <th className="px-4 py-3 text-center text-xs font-bold text-gray-700 uppercase">Skor</th>
                 <th className="px-4 py-3 text-center text-xs font-bold text-gray-700 uppercase">Durum</th>
               </tr>
             </thead>
@@ -242,6 +251,29 @@ export default function ApiEndpointsTab() {
                   <td className="px-4 py-3">
                     <span className={`px-2 py-1 rounded text-xs font-medium border ${getAuthBadge(endpoint.authType)}`}>
                       {endpoint.authType}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    {endpoint.strategyCompliant ? (
+                      <span className="text-green-600 text-lg">✅</span>
+                    ) : (
+                      <span className="text-red-600 text-lg">❌</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    {endpoint.namingCompliant ? (
+                      <span className="text-green-600 text-lg">✅</span>
+                    ) : (
+                      <span className="text-red-600 text-lg">❌</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <span className={`px-2 py-1 rounded text-xs font-bold ${
+                      endpoint.complianceScore === 100 ? 'bg-green-100 text-green-700' :
+                      endpoint.complianceScore >= 75 ? 'bg-yellow-100 text-yellow-700' :
+                      'bg-red-100 text-red-700'
+                    }`}>
+                      {endpoint.complianceScore}%
                     </span>
                   </td>
                   <td className="px-4 py-3 text-center">
