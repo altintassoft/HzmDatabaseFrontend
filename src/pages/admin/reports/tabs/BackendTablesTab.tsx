@@ -245,6 +245,7 @@ export default function BackendTablesTab() {
                     <tr>
                       <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Schema</th>
                       <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Tablo</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Açıklama</th>
                       <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Sütun Sayısı</th>
                       <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Index Sayısı</th>
                       <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Satır Sayısı</th>
@@ -261,6 +262,7 @@ export default function BackendTablesTab() {
                           <tr key={index} className="hover:bg-gray-50 transition-colors">
                             <td className="px-6 py-4 text-sm text-blue-600 font-medium">{table.schema_name}</td>
                             <td className="px-6 py-4 text-sm text-gray-900 font-semibold">{table.table_name}</td>
+                            <td className="px-6 py-4 text-sm text-gray-500 italic">{table.description || '-'}</td>
                             <td className="px-6 py-4 text-sm text-gray-600">{table.column_count}</td>
                             <td className="px-6 py-4 text-sm text-gray-600">{table.index_count}</td>
                             <td className="px-6 py-4 text-sm text-gray-600">{table.row_count?.toLocaleString() || 'N/A'}</td>
@@ -291,7 +293,7 @@ export default function BackendTablesTab() {
                           {/* Expanded Row - Columns */}
                           {isExpanded && table.columns && (
                             <tr key={`${index}-expanded`}>
-                              <td colSpan={6} className="px-6 py-4 bg-gray-50">
+                              <td colSpan={7} className="px-6 py-4 bg-gray-50">
                                 <div className="pl-8">
                                   <h4 className="text-sm font-semibold text-gray-700 mb-4">📋 Sütunlar ({table.columns.length})</h4>
                                   <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
