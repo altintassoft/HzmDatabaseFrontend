@@ -58,9 +58,8 @@ export const useAIKnowledgeBase = (reportType: string): UseAIKnowledgeBaseReturn
       setGenerating(true);
       setError(null);
 
-      const response = await api.post(ENDPOINTS.ADMIN.GENERATE_REPORT, {
-        params: { type: reportType }
-      });
+      // Backend expects: POST /admin/generate-report?type=backend_tables
+      const response = await api.post(`${ENDPOINTS.ADMIN.GENERATE_REPORT}?type=${reportType}`);
 
       if (response.success && response.report) {
         setReport(response.report);
