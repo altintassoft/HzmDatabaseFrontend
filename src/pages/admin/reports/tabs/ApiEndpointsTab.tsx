@@ -39,12 +39,19 @@ export default function ApiEndpointsTab() {
     fetchEndpoints();
   }, []);
 
-  const fetchEndpoints = async () => {
+  const fetchEndpoints = async (forceRefresh = false) => {
     try {
       setLoading(true);
       setError(null);
       
-      const response = await api.get('/admin/database?type=api-endpoints');
+      const url = forceRefresh 
+        ? '/admin/database?type=api-endpoints&force=true'
+        : '/admin/database?type=api-endpoints';
+      
+      const response = await api.get(url);
+      
+      console.log('📊 API Endpoints Response:', response);
+      console.log('💾 Cached:', response?.cached);
       
       if (response && response.endpoints) {
         setData(response);
@@ -184,12 +191,22 @@ export default function ApiEndpointsTab() {
               <span>Raporu Kopyala</span>
             </button>
             <button
-              onClick={fetchEndpoints}
+              onClick={() => fetchEndpoints(false)}
               disabled={loading}
               className="px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg transition-colors flex items-center gap-2"
+              title="Cache'den yükle (hızlı)"
+            >
+              <RefreshCw size={18} />
+              <span>Yenile</span>
+            </button>
+            <button
+              onClick={() => fetchEndpoints(true)}
+              disabled={loading}
+              className="px-4 py-2 bg-orange-600 hover:bg-orange-700 backdrop-blur-sm rounded-lg transition-colors flex items-center gap-2 text-white"
+              title="GitHub'dan yeniden tara (yavaş)"
             >
               <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
-              <span>Yenile</span>
+              <span>GitHub'dan Tara</span>
             </button>
           </div>
         </div>
