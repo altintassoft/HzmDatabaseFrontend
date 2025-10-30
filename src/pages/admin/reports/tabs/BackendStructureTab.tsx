@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ChevronRight, ChevronDown, File, Folder, AlertCircle, RefreshCw } from 'lucide-react';
 import api from '../../../../services/api';
+import { ENDPOINTS, REPORT_TYPES, TARGETS } from '../../../../constants/endpoints';
 
 // ============================================================================
 // INTERFACES
@@ -280,10 +281,10 @@ export default function BackendStructureTab() {
       setLoading(true);
       setError(null);
       
-      const response = await api.get('/admin/database', {
+      const response = await api.get(ENDPOINTS.ADMIN.DATABASE, {
         params: { 
-          type: 'project-structure', 
-          target: 'backend',
+          type: REPORT_TYPES.PROJECT_STRUCTURE, 
+          target: TARGETS.BACKEND,
           ...(forceRefresh && { force: 'true' })
         }
       });

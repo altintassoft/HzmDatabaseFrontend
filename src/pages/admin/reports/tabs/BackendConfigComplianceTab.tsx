@@ -36,7 +36,9 @@ const BackendConfigComplianceTab = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await api.get('/admin/database?type=configuration-compliance');
+      const response = await api.get(ENDPOINTS.ADMIN.DATABASE, {
+        params: { type: REPORT_TYPES.CONFIGURATION_COMPLIANCE }
+      });
       
       console.log('📊 Compliance API Response (Backend):', response);
       

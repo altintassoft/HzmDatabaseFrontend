@@ -117,7 +117,7 @@ const SystemSettingsPage = () => {
       setSavingCurrency(true);
       setError(null);
 
-      const response = await api.put('/admin/tenant-settings', {
+      const response = await api.put(ENDPOINTS.ADMIN.TENANT_SETTINGS, {
         default_currency: newCurrency
       });
 

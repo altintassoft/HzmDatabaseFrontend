@@ -15,7 +15,9 @@ export default function MigrationSchemaTab() {
     try {
       setLoading(true);
       setError(null);
-      const response = await api.get('/admin/database?type=migration-report');
+      const response = await api.get(ENDPOINTS.ADMIN.DATABASE, {
+        params: { type: REPORT_TYPES.MIGRATION_REPORT }
+      });
       if (response) {
         setMigrationReport(response);
       }

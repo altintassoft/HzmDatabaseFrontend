@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ChevronRight, ChevronDown, File, Folder, AlertCircle, RefreshCw } from 'lucide-react';
 import api from '../../../../services/api';
+import { ENDPOINTS, REPORT_TYPES, TARGETS } from '../../../../constants/endpoints';
 
 // Component aynı BackendStructureTab gibi, sadece Frontend için
 // Interfaces ve helper functions aynı
@@ -262,10 +263,10 @@ export default function FrontendStructureTab() {
       setLoading(true);
       setError(null);
       
-      const response = await api.get('/admin/database', {
+      const response = await api.get(ENDPOINTS.ADMIN.DATABASE, {
         params: { 
-          type: 'project-structure', 
-          target: 'frontend',
+          type: REPORT_TYPES.PROJECT_STRUCTURE, 
+          target: TARGETS.FRONTEND,
           ...(forceRefresh && { force: 'true' })
         }
       });

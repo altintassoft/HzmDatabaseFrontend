@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import api from '../services/api';
+import { ENDPOINTS } from '../constants/endpoints';
 
 interface Report {
   id: string;
@@ -33,7 +34,9 @@ export const useAIKnowledgeBase = (reportType: string): UseAIKnowledgeBaseReturn
       setLoading(true);
       setError(null);
 
-      const response = await api.get(`/admin/get-latest-report?type=${reportType}`);
+      const response = await api.get(ENDPOINTS.ADMIN.GET_LATEST_REPORT, {
+        params: { type: reportType }
+      });
 
       if (response.success && response.report) {
         setReport(response.report);
@@ -55,7 +58,9 @@ export const useAIKnowledgeBase = (reportType: string): UseAIKnowledgeBaseReturn
       setGenerating(true);
       setError(null);
 
-      const response = await api.post(`/admin/generate-report?type=${reportType}`);
+      const response = await api.post(ENDPOINTS.ADMIN.GENERATE_REPORT, {
+        params: { type: reportType }
+      });
 
       if (response.success && response.report) {
         setReport(response.report);

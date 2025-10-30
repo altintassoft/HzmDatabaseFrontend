@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Zap, RefreshCw, Search, Filter, Copy } from 'lucide-react';
 import api from '../../../../services/api';
+import { ENDPOINTS, REPORT_TYPES } from '../../../../constants/endpoints';
 
 interface Endpoint {
   module: string;
@@ -44,11 +45,12 @@ export default function ApiEndpointsTab() {
       setLoading(true);
       setError(null);
       
-      const url = forceRefresh 
-        ? '/admin/database?type=api-endpoints&force=true'
-        : '/admin/database?type=api-endpoints';
-      
-      const response = await api.get(url);
+      const response = await api.get(ENDPOINTS.ADMIN.DATABASE, {
+        params: {
+          type: REPORT_TYPES.API_ENDPOINTS,
+          ...(forceRefresh && { force: 'true' })
+        }
+      });
       
       console.log('📊 API Endpoints Response:', response);
       console.log('💾 Cached:', response?.cached);

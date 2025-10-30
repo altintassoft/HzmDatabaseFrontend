@@ -75,7 +75,9 @@ export default function ArchitectureComplianceTab() {
       setLoading(true);
       setError(null);
       
-      const response = await api.get('/admin/database?type=architecture-compliance');
+      const response = await api.get(ENDPOINTS.ADMIN.DATABASE, {
+        params: { type: REPORT_TYPES.ARCHITECTURE_COMPLIANCE }
+      });
       
       console.log('🏗️ Architecture Compliance Response:', response);
       

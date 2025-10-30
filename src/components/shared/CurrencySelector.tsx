@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { DollarSign } from 'lucide-react';
 import api from '../../services/api';
+import { ENDPOINTS } from '../../constants/endpoints';
 
 interface Currency {
   code: string;
@@ -26,7 +27,7 @@ export default function CurrencySelector({ value, onChange, disabled = false }: 
 
   const fetchCurrencies = async () => {
     try {
-      const response = await api.get('/admin/currencies');
+      const response = await api.get(ENDPOINTS.ADMIN.CURRENCIES);
       if (response.success) {
         setCurrencies(response.currencies);
       }

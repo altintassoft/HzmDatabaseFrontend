@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { CheckCircle, AlertTriangle, XCircle, Info } from 'lucide-react';
 import api from '../../../../services/api';
+import { ENDPOINTS, REPORT_TYPES } from '../../../../constants/endpoints';
 
 interface ComplianceRule {
   id: number;
@@ -36,7 +37,9 @@ const FrontendConfigComplianceTab = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await api.get('/admin/database?type=configuration-compliance');
+      const response = await api.get(ENDPOINTS.ADMIN.DATABASE, {
+        params: { type: REPORT_TYPES.CONFIGURATION_COMPLIANCE }
+      });
       
       console.log('📊 Compliance API Response (Frontend):', response);
       
