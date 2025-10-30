@@ -31,7 +31,7 @@ export default function MigrationSchemaTab() {
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-gradient-to-r from-green-500 to-teal-600 rounded-xl p-6 text-white shadow-lg">
-        <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="bg-white/20 p-3 rounded-lg backdrop-blur-sm">
               <FileCode size={24} />
@@ -40,7 +40,7 @@ export default function MigrationSchemaTab() {
               <h2 className="text-2xl font-bold">📋 Migration & Schema Uyumluluk</h2>
               <p className="text-green-100 mt-1">Migration vs Tablo vs Kod Analizi</p>
             </div>
-          </div>
+      </div>
 
           <button
             onClick={fetchMigrationReport}
@@ -64,16 +64,16 @@ export default function MigrationSchemaTab() {
           >
             Tekrar Dene
           </button>
-        </div>
-      )}
+                          </div>
+                        )}
 
       {/* Loading */}
       {loading && (
         <div className="flex items-center justify-center py-12">
           <RefreshCw size={32} className="animate-spin text-green-500" />
           <span className="ml-3 text-gray-600 font-medium">Migration raporu yükleniyor...</span>
-        </div>
-      )}
+          </div>
+        )}
 
       {/* Report Content */}
       {!loading && !error && migrationReport && (
@@ -109,7 +109,7 @@ export default function MigrationSchemaTab() {
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-red-700 text-sm font-medium">❌ Hata</span>
                   <XCircle size={20} className="text-red-500" />
-                </div>
+              </div>
                 <div className="text-3xl font-bold text-red-900">{migrationReport.summary.errorCount || 0}</div>
               </div>
             </div>
@@ -159,7 +159,7 @@ export default function MigrationSchemaTab() {
                                   <span className="text-xs text-gray-500">
                                     ({table.actualColumns || 0} sütun)
                                   </span>
-                                </div>
+                            </div>
                               ))}
                             </div>
                           ) : (
@@ -182,12 +182,12 @@ export default function MigrationSchemaTab() {
                             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
                               ✅ OK
                             </span>
-                          )}
+                            )}
                           {migration.status === 'warning' && (
                             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">
                               ⚠️ Uyarı
                             </span>
-                          )}
+                            )}
                           {migration.status === 'error' && (
                             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
                               ❌ Hata
@@ -220,9 +220,9 @@ export default function MigrationSchemaTab() {
                   {schema.total_size && (
                     <div className="pt-3 border-t border-green-200">
                       <div className="text-xs text-green-600">{schema.total_size}</div>
-                    </div>
-                  )}
-                </div>
+          </div>
+        )}
+      </div>
               ))}
             </div>
           )}
@@ -237,7 +237,7 @@ export default function MigrationSchemaTab() {
               {JSON.stringify(migrationReport, null, 2)}
             </pre>
           </div>
-        </div>
+      </div>
       )}
     </div>
   );

@@ -257,17 +257,22 @@ export default function FrontendStructureTab() {
     fetchReport();
   }, []);
 
-  const fetchReport = async () => {
+  const fetchReport = async (forceRefresh = false) => {
     try {
       setLoading(true);
       setError(null);
       
       const response = await api.get('/admin/database', {
-        params: { type: 'project-structure', target: 'frontend' }
+        params: { 
+          type: 'project-structure', 
+          target: 'frontend',
+          ...(forceRefresh && { force: 'true' })
+        }
       });
       
       console.log('📊 Frontend Structure Response:', response);
       console.log('📄 Content length:', response?.content?.length);
+      console.log('💾 Cached:', response?.cached);
       
       if (response && response.content) {
         setMarkdownContent(response.content);
@@ -437,11 +442,20 @@ export default function FrontendStructureTab() {
               <span>Tüm Ağacı Kopyala</span>
             </button>
             <button
-              onClick={fetchReport}
+              onClick={() => fetchReport(false)}
               className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-cyan-600 hover:bg-cyan-700 rounded-lg transition-colors"
+              title="Cache'den yükle (hızlı)"
+            >
+              <RefreshCw size={16} />
+              <span>Yenile</span>
+            </button>
+            <button
+              onClick={() => fetchReport(true)}
+              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 rounded-lg transition-colors"
+              title="GitHub'dan yeniden çek (yavaş)"
             >
               <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-              <span>Yenile</span>
+              <span>GitHub'dan Çek</span>
             </button>
           </div>
         </div>
