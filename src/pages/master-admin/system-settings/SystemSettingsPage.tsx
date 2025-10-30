@@ -11,9 +11,12 @@ import {
   EyeOff, 
   Shield,
   Settings as SettingsIcon,
-  Crown
+  Crown,
+  DollarSign
 } from 'lucide-react';
 import ConfirmModal from '../../../components/shared/ConfirmModal';
+import CurrencySelector from '../../../components/shared/CurrencySelector';
+import api from '../../../services/api';
 
 interface MasterAdminData {
   email: string;
@@ -47,6 +50,10 @@ const SystemSettingsPage = () => {
   // Modal states
   const [showRegenerateKeyModal, setShowRegenerateKeyModal] = useState(false);
   const [showRegeneratePasswordModal, setShowRegeneratePasswordModal] = useState(false);
+
+  // Currency states
+  const [tenantCurrency, setTenantCurrency] = useState('TRY');
+  const [savingCurrency, setSavingCurrency] = useState(false);
 
   // Fetch Master Admin API Key data
   const fetchMasterAdminData = async () => {
@@ -102,6 +109,29 @@ const SystemSettingsPage = () => {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setGenerating(false);
+    }
+  };
+
+  const handleCurrencyChange = async (newCurrency: string) => {
+    try {
+      setSavingCurrency(true);
+      setError(null);
+
+      const response = await api.put('/admin/tenant-settings', {
+        default_currency: newCurrency
+      });
+
+      if (response.success) {
+        setTenantCurrency(newCurrency);
+        alert('✅ Para birimi güncellendi!');
+      } else {
+        setError(response.error || 'Para birimi güncellenemedi');
+      }
+    } catch (err: any) {
+      console.error('Failed to update currency:', err);
+      setError(err.message || 'Para birimi güncellenemedi');
+    } finally {
+      setSavingCurrency(false);
     }
   };
 
@@ -356,6 +386,48 @@ const SystemSettingsPage = () => {
               <li>Tüm tenant ve proje verilerine erişim sağlar</li>
               <li>Çok dikkatli kullanılmalı ve paylaşılmamalıdır</li>
             </ul>
+          </div>
+        </div>
+
+        {/* Tenant Currency Settings Card */}
+        <div className="bg-white rounded-lg shadow-md p-6 mt-6">
+          <div className="flex items-center gap-3 mb-6 pb-4 border-b">
+            <div className="p-3 bg-green-100 rounded-lg">
+              <DollarSign className="text-green-600" size={28} />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-gray-800">Tenant Para Birimi</h2>
+              <p className="text-sm text-gray-600">Varsayılan para birimi ayarları (fiyatlandırma için)</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <CurrencySelector
+              value={tenantCurrency}
+              onChange={handleCurrencyChange}
+              disabled={savingCurrency}
+            />
+
+            {savingCurrency && (
+              <div className="flex items-center gap-2 text-sm text-blue-600">
+                <RefreshCw size={16} className="animate-spin" />
+                <span>Kaydediliyor...</span>
+              </div>
+            )}
+
+            {/* Info */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+              <h3 className="font-semibold text-blue-900 mb-2 text-sm flex items-center gap-2">
+                <DollarSign size={16} />
+                Para Birimi Kullanımı
+              </h3>
+              <ul className="text-xs text-blue-800 space-y-1 list-disc list-inside">
+                <li>Tenant'ın varsayılan para birimi (fiyatlandırma sayfası)</li>
+                <li>Proje fiyatları bu para birimine çevrilir</li>
+                <li>Invoice'lar bu para biriminde oluşturulur</li>
+                <li>Dashboard'da bu sembol gösterilir (₺, $, €, £)</li>
+              </ul>
+            </div>
           </div>
         </div>
       </main>
