@@ -145,7 +145,34 @@ function DirectoryNodeComponent({
         className="flex items-center gap-2 py-2 px-3 hover:bg-gray-50 rounded-lg cursor-pointer relative"
         onClick={() => hasChildren && setExpanded(!expanded)}
       >
-        <div style={{ paddingLeft: `${level * 24}px` }} className="flex items-center gap-2 flex-1">
+        {/* Tree Lines */}
+        <div className="absolute left-0 top-0 bottom-0 flex" style={{ width: `${level * 24}px` }}>
+          {parentLines.map((shouldDrawLine, idx) => (
+            <div key={idx} className="relative" style={{ width: '24px' }}>
+              {shouldDrawLine && (
+                <div 
+                  className="absolute left-3 top-0 bottom-0 w-px bg-gray-300"
+                  style={{ height: '100%' }}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+        
+        {/* Current Level Line */}
+        {level > 0 && (
+          <div 
+            className="absolute bg-gray-300"
+            style={{
+              left: `${(level - 1) * 24 + 12}px`,
+              top: '50%',
+              width: '12px',
+              height: '1px'
+            }}
+          />
+        )}
+        
+        <div style={{ paddingLeft: `${level * 24 + 12}px` }} className="flex items-center gap-2 flex-1">
           {hasChildren && (
             <div className="text-gray-400 flex-shrink-0">
               {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
@@ -172,20 +199,48 @@ function DirectoryNodeComponent({
             );
           })}
           
-          {node.files?.map((file, idx) => (
-            <div
-              key={idx}
-              className="flex items-center justify-between py-2 px-3 hover:bg-cyan-50 rounded-lg group"
-            >
-              <div style={{ paddingLeft: `${(level + 1) * 24}px` }} className="flex items-center gap-2 flex-1 min-w-0">
-                <File size={16} className="text-gray-400 flex-shrink-0" />
-                <span className="text-gray-700 truncate">{file.name}</span>
+          {node.files?.map((file, idx) => {
+            const isLastFile = idx === (node.files?.length || 0) - 1;
+            return (
+              <div
+                key={idx}
+                className="flex items-center justify-between py-2 px-3 hover:bg-cyan-50 rounded-lg group relative"
+              >
+                {/* Tree Lines for Files */}
+                <div className="absolute left-0 top-0 bottom-0 flex" style={{ width: `${(level + 1) * 24}px` }}>
+                  {[...parentLines, !isLast].map((shouldDrawLine, pIdx) => (
+                    <div key={pIdx} className="relative" style={{ width: '24px' }}>
+                      {shouldDrawLine && (
+                        <div 
+                          className="absolute left-3 top-0 bottom-0 w-px bg-gray-300"
+                          style={{ height: '100%' }}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+                
+                {/* File Line */}
+                <div 
+                  className="absolute bg-gray-300"
+                  style={{
+                    left: `${level * 24 + 12}px`,
+                    top: '50%',
+                    width: '12px',
+                    height: '1px'
+                  }}
+                />
+                
+                <div style={{ paddingLeft: `${(level + 1) * 24 + 12}px` }} className="flex items-center gap-2 flex-1 min-w-0">
+                  <File size={16} className="text-gray-400 flex-shrink-0" />
+                  <span className="text-gray-700 truncate">{file.name}</span>
+                </div>
+                <div className="ml-4 flex-shrink-0">
+                  {getStatusBadge(file.status, file.lines)}
+                </div>
               </div>
-              <div className="ml-4 flex-shrink-0">
-                {getStatusBadge(file.status, file.lines)}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
