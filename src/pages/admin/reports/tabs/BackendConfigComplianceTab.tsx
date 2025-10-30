@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { CheckCircle, AlertTriangle, XCircle, Info } from 'lucide-react';
 import api from '../../../../services/api';
+import { ENDPOINTS, REPORT_TYPES } from '../../../../constants/endpoints';
 
 interface ComplianceRule {
   id: number;
