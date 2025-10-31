@@ -36,8 +36,22 @@ const LoginPage = () => {
           payload: { user: response.data }
         });
         
-        console.log('✅ [LOGIN] Context güncellendi, dashboard\'a yönlendiriliyor...');
-        navigate('/dashboard');
+        // Role'e göre yönlendirme
+        const userRole = response.data.role || response.data.user?.role;
+        let redirectPath = '/dashboard';
+        
+        if (userRole === 'master_admin') {
+          redirectPath = '/master-admin';
+          console.log('✅ [LOGIN] Master Admin olarak yönlendiriliyor...');
+        } else if (userRole === 'admin') {
+          redirectPath = '/admin';
+          console.log('✅ [LOGIN] Admin olarak yönlendiriliyor...');
+        } else {
+          console.log('✅ [LOGIN] Customer dashboard\'a yönlendiriliyor...');
+        }
+        
+        console.log('✅ [LOGIN] Context güncellendi, yönlendirme:', redirectPath);
+        navigate(redirectPath);
       } else {
         console.log('🔴 [LOGIN] Login başarısız:', response.error);
         setError(response.error || 'E-posta veya şifre hatalı');
