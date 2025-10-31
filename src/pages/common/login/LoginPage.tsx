@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Database, LogIn, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import apiService from '../../../services/api';
+import { useDatabase } from '../../../context/DatabaseContext';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const { dispatch } = useDatabase();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -26,7 +28,15 @@ const LoginPage = () => {
       console.log('🟢 [LOGIN] API response:', response);
       
       if (response.success) {
-        console.log('✅ [LOGIN] Login başarılı, dashboard\'a yönlendiriliyor...');
+        console.log('✅ [LOGIN] Login başarılı, backend user:', response.data);
+        
+        // Backend'den gelen user'ı OLDUĞU GİBİ context'e kaydet
+        dispatch({ 
+          type: 'LOGIN', 
+          payload: { user: response.data }
+        });
+        
+        console.log('✅ [LOGIN] Context güncellendi, dashboard\'a yönlendiriliyor...');
         navigate('/dashboard');
       } else {
         console.log('🔴 [LOGIN] Login başarısız:', response.error);
