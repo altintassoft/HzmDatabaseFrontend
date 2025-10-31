@@ -20,15 +20,17 @@ import {
 import { ApiKeyGenerator } from '../../../utils/apiKeyGenerator';
 
 const ProjectsListPage = () => {
-  const { state, dispatch } = useDatabase();
+  const { state, createProject, deleteProject } = useDatabase();
   const navigate = useNavigate();
   const [newProjectName, setNewProjectName] = useState('');
   const [newProjectDescription, setNewProjectDescription] = useState('');
   const [deletingProject, setDeletingProject] = useState<string | null>(null);
   const [deleteConfirmName, setDeleteConfirmName] = useState('');
   const [showApiKey, setShowApiKey] = useState<{[key: string]: boolean}>({});
+  const [isCreating, setIsCreating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const handleAddProject = (e: React.FormEvent) => {
+  const handleAddProject = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newProjectName.trim()) {
       // Check if project name already exists
@@ -41,15 +43,27 @@ const ProjectsListPage = () => {
         return;
       }
       
-      dispatch({ 
-        type: 'ADD_PROJECT', 
-        payload: { 
-          name: newProjectName.trim(),
-          description: newProjectDescription.trim() || undefined
-        } 
-      });
-      setNewProjectName('');
-      setNewProjectDescription('');
+      setIsCreating(true);
+      
+      try {
+        const newProject = await createProject(
+          newProjectName.trim(),
+          newProjectDescription.trim() || undefined
+        );
+        
+        if (newProject) {
+          alert('Proje başarıyla oluşturuldu!');
+          setNewProjectName('');
+          setNewProjectDescription('');
+        } else {
+          alert('Proje oluşturulamadı. Lütfen tekrar deneyin.');
+        }
+      } catch (error) {
+        console.error('Project creation error:', error);
+        alert('Bir hata oluştu. Lütfen tekrar deneyin.');
+      } finally {
+        setIsCreating(false);
+      }
     }
   };
 
@@ -58,39 +72,28 @@ const ProjectsListPage = () => {
     setDeleteConfirmName('');
   };
 
-  const confirmDeleteProject = () => {
+  const confirmDeleteProject = async () => {
     if (deletingProject) {
       const projectToDelete = state.projects.find(p => p.id === deletingProject);
       if (projectToDelete && deleteConfirmName === projectToDelete.name) {
-        // Remove from current user's projects
-        const updatedProjects = state.projects.filter(p => p.id !== deletingProject);
+        setIsDeleting(true);
         
-        // Remove from all projects in localStorage
-        const allProjects = JSON.parse(localStorage.getItem('all_projects') || '[]');
-        const updatedAllProjects = allProjects.filter((p: any) => p.id !== deletingProject);
-        localStorage.setItem('all_projects', JSON.stringify(updatedAllProjects));
-        
-        // Remove all table data for this project
-        projectToDelete.tables.forEach(table => {
-          localStorage.removeItem(`table_data_${table.id}`);
-        });
-        
-        // Update state
-        const newState = {
-          ...state,
-          projects: updatedProjects,
-          selectedProject: state.selectedProject?.id === deletingProject ? null : state.selectedProject,
-          selectedTable: state.selectedProject?.id === deletingProject ? null : state.selectedTable,
-        };
-        
-        // Save updated state
-        localStorage.setItem('database_state', JSON.stringify(newState));
-        
-        // Force page reload to reflect changes
-        window.location.reload();
-        
-        setDeletingProject(null);
-        setDeleteConfirmName('');
+        try {
+          const success = await deleteProject(deletingProject);
+          
+          if (success) {
+            alert('Proje başarıyla silindi!');
+            setDeletingProject(null);
+            setDeleteConfirmName('');
+          } else {
+            alert('Proje silinemedi. Lütfen tekrar deneyin.');
+          }
+        } catch (error) {
+          console.error('Project deletion error:', error);
+          alert('Bir hata oluştu. Lütfen tekrar deneyin.');
+        } finally {
+          setIsDeleting(false);
+        }
       }
     }
   };
@@ -172,10 +175,11 @@ const ProjectsListPage = () => {
               <div className="flex justify-end">
                 <button
                   type="submit"
-                  className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center font-medium"
+                  disabled={isCreating}
+                  className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <PlusCircle size={20} className="mr-2" />
-                  Proje Ekle
+                  {isCreating ? 'Oluşturuluyor...' : 'Proje Ekle'}
                 </button>
               </div>
             </form>
@@ -411,12 +415,12 @@ const ProjectsListPage = () => {
                 onClick={confirmDeleteProject}
                 disabled={(() => {
                   const projectToDelete = state.projects.find(p => p.id === deletingProject);
-                  return deleteConfirmName !== projectToDelete?.name;
+                  return deleteConfirmName !== projectToDelete?.name || isDeleting;
                 })()}
                 className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center transition-colors"
               >
                 <Trash2 size={16} className="mr-2" />
-                Projeyi Sil
+                {isDeleting ? 'Siliniyor...' : 'Projeyi Sil'}
               </button>
             </div>
           </div>
