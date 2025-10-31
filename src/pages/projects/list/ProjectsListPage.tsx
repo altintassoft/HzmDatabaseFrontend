@@ -103,8 +103,16 @@ const ProjectsListPage = () => {
     setDeleteConfirmName('');
   };
 
+  // Helper: Safely get project tables (defaults to empty array if undefined)
+  const getProjectTables = (project: any) => {
+    return project?.tables || [];
+  };
+
   const getTotalFields = (project: any) => {
-    return project.tables.reduce((total: number, table: any) => total + table.fields.length, 0);
+    const tables = getProjectTables(project);
+    return tables.reduce((total: number, table: any) => {
+      return total + (table?.fields?.length || 0);
+    }, 0);
   };
 
   const handleCopyApiKey = (apiKey: string) => {
@@ -231,7 +239,7 @@ const ProjectsListPage = () => {
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div className="flex items-center text-gray-600">
                         <Table className="mr-2 text-teal-500" size={16} />
-                        <span className="font-medium">{project.tables.length}</span>
+                        <span className="font-medium">{getProjectTables(project).length}</span>
                         <span className="ml-1">Tablo</span>
                       </div>
                       <div className="flex items-center text-gray-600">
@@ -281,7 +289,7 @@ const ProjectsListPage = () => {
                   
                   {/* Tables List */}
                   <div className="p-4">
-                    {project.tables.length === 0 ? (
+                    {getProjectTables(project).length === 0 ? (
                       <div className="text-center py-4 text-gray-500">
                         <Table className="mx-auto mb-2 text-gray-300" size={32} />
                         <p className="text-sm">Henüz tablo eklenmemiş</p>
@@ -289,7 +297,7 @@ const ProjectsListPage = () => {
                     ) : (
                       <div className="space-y-2 mb-4">
                         <h4 className="text-sm font-medium text-gray-700 mb-2">Tablolar:</h4>
-                        {project.tables.slice(0, 3).map(table => (
+                        {getProjectTables(project).slice(0, 3).map((table: any) => (
                           <div
                             key={table.id}
                             className="flex items-center justify-between bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors"
@@ -302,13 +310,13 @@ const ProjectsListPage = () => {
                             </div>
                             <div className="flex items-center text-xs text-gray-500 flex-shrink-0 ml-2">
                               <FileText className="mr-1" size={12} />
-                              {table.fields.length}
+                              {table?.fields?.length || 0}
                             </div>
                           </div>
                         ))}
-                        {project.tables.length > 3 && (
+                        {getProjectTables(project).length > 3 && (
                           <div className="text-xs text-gray-500 text-center py-1">
-                            +{project.tables.length - 3} tablo daha...
+                            +{getProjectTables(project).length - 3} tablo daha...
                           </div>
                         )}
                       </div>
@@ -373,7 +381,7 @@ const ProjectsListPage = () => {
                       <p className="text-sm font-medium text-gray-700 mb-2">Silinecek proje bilgileri:</p>
                       <div className="text-sm text-gray-600 space-y-1">
                         <div><strong>Proje Adı:</strong> {projectToDelete?.name}</div>
-                        <div><strong>Tablo Sayısı:</strong> {projectToDelete?.tables.length}</div>
+                        <div><strong>Tablo Sayısı:</strong> {getProjectTables(projectToDelete).length}</div>
                         <div><strong>Toplam Alan:</strong> {getTotalFields(projectToDelete)}</div>
                         <div><strong>API Key:</strong> {projectToDelete ? ApiKeyGenerator.maskApiKey(projectToDelete.apiKey) : ''}</div>
                         <div><strong>Oluşturulma:</strong> {projectToDelete ? new Date(projectToDelete.createdAt).toLocaleDateString('tr-TR') : ''}</div>
