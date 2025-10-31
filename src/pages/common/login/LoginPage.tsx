@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Database, LogIn, Eye, EyeOff, AlertCircle } from 'lucide-react';
-import apiService from '../../../services/api';
-import { apiClient } from '../../../services/apiClient';
 import { useDatabase } from '../../../context/DatabaseContext';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { dispatch } = useDatabase();
+  const { login } = useDatabase();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -22,49 +20,18 @@ const LoginPage = () => {
     setIsLoading(true);
 
     try {
-      const response = await apiService.login(formData);
+      // Use DatabaseContext login (loads user + projects from backend)
+      const success = await login(formData.email, formData.password);
       
-      if (response.success) {
-        // Sync token with apiClient (for projects and other services)
-        if (response.data.token) {
-          apiClient.setTokens(response.data.token);
-        }
-        
-        // Backend user'ı Frontend User formatına map et
-        const backendUser = response.data.user || response.data;
-        const mappedUser = {
-          id: String(backendUser.id),
-          email: backendUser.email,
-          name: backendUser.name || backendUser.email.split('@')[0],
-          createdAt: backendUser.createdAt || new Date().toISOString(),
-          isActive: backendUser.isActive !== false,
-          isAdmin: backendUser.role === 'admin' || backendUser.role === 'master_admin',
-          subscriptionType: (backendUser.role === 'admin' || backendUser.role === 'master_admin') ? 'enterprise' : 'free',
-          maxProjects: (backendUser.role === 'admin' || backendUser.role === 'master_admin') ? -1 : 2,
-          maxTables: (backendUser.role === 'admin' || backendUser.role === 'master_admin') ? -1 : 5,
-        };
-        
-        // Frontend formatındaki user'ı context'e kaydet
-        dispatch({ 
-          type: 'LOGIN', 
-          payload: { user: mappedUser }
-        });
-        
-        // Role'e göre yönlendirme
-        const userRole = backendUser.role;
-        let redirectPath = '/dashboard';
-        
-        if (userRole === 'master_admin') {
-          redirectPath = '/master-admin';
-        } else if (userRole === 'admin') {
-          redirectPath = '/admin';
-        }
-        
-        navigate(redirectPath);
+      if (success) {
+        // Login successful - context already has user and projects loaded
+        // Redirect to dashboard (role-based routing handled by context)
+        navigate('/dashboard');
       } else {
-        setError(response.error || 'E-posta veya şifre hatalı');
+        setError('E-posta veya şifre hatalı');
       }
     } catch (err) {
+      console.error('Login error:', err);
       setError('Giriş yapılırken bir hata oluştu');
     } finally {
       setIsLoading(false);

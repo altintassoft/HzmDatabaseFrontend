@@ -70,7 +70,8 @@ export class ProjectsService {
 
   /**
    * Get user's projects
-   * GET /api/v1/data/projects?filter[user_id]=:userId
+   * GET /api/v1/data/projects?filter[created_by]=:userId
+   * Note: Backend uses created_by field, not user_id or owner_id
    */
   async getUserProjects(
     userId: string | number,
@@ -79,7 +80,7 @@ export class ProjectsService {
   ): Promise<ListResponse<Project>> {
     return this.list({
       ...params,
-      filter: { ...params?.filter, user_id: userId },
+      filter: { ...params?.filter, created_by: userId },
     }, options);
   }
 
