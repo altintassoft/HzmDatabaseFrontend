@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Database, LogIn, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import apiService from '../../../services/api';
+import { apiClient } from '../../../services/apiClient';
 import { useDatabase } from '../../../context/DatabaseContext';
 
 const LoginPage = () => {
@@ -24,6 +25,11 @@ const LoginPage = () => {
       const response = await apiService.login(formData);
       
       if (response.success) {
+        // Sync token with apiClient (for projects and other services)
+        if (response.data.token) {
+          apiClient.setTokens(response.data.token);
+        }
+        
         // Backend user'ı Frontend User formatına map et
         const backendUser = response.data.user || response.data;
         const mappedUser = {
