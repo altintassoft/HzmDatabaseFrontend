@@ -30,14 +30,30 @@ const LoginPage = () => {
       if (response.success) {
         console.log('✅ [LOGIN] Login başarılı, backend user:', response.data);
         
-        // Backend'den gelen user'ı OLDUĞU GİBİ context'e kaydet
+        // Backend user'ı Frontend User formatına map et
+        const backendUser = response.data.user || response.data;
+        const mappedUser = {
+          id: String(backendUser.id),
+          email: backendUser.email,
+          name: backendUser.name || backendUser.email.split('@')[0],
+          createdAt: backendUser.createdAt || new Date().toISOString(),
+          isActive: backendUser.isActive !== false,
+          isAdmin: backendUser.role === 'admin' || backendUser.role === 'master_admin',
+          subscriptionType: (backendUser.role === 'admin' || backendUser.role === 'master_admin') ? 'enterprise' : 'free',
+          maxProjects: (backendUser.role === 'admin' || backendUser.role === 'master_admin') ? -1 : 2,
+          maxTables: (backendUser.role === 'admin' || backendUser.role === 'master_admin') ? -1 : 5,
+        };
+        
+        console.log('✅ [LOGIN] Mapped user:', mappedUser);
+        
+        // Frontend formatındaki user'ı context'e kaydet
         dispatch({ 
           type: 'LOGIN', 
-          payload: { user: response.data }
+          payload: { user: mappedUser }
         });
         
         // Role'e göre yönlendirme
-        const userRole = response.data.role || response.data.user?.role;
+        const userRole = backendUser.role;
         let redirectPath = '/dashboard';
         
         if (userRole === 'master_admin') {
