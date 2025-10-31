@@ -19,3 +19,25 @@ export type { Campaign, PricingPlan } from './pricing';
 
 // Database types
 export type { DatabaseState, DatabaseAction } from './database';
+
+// API types
+export type {
+  ApiResponse,
+  PaginatedResponse,
+  ErrorResponse,
+  ResourceMetadata,
+  ListResponse,
+  ItemResponse,
+  QueryParams,
+  RequestOptions,
+} from './api';
+
+export {
+  ApiError,
+  NetworkError,
+  AuthenticationError,
+  AuthorizationError,
+  NotFoundError,
+  ValidationError,
+  ServerError,
+} from './api';
