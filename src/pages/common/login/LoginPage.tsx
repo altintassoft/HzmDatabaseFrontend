@@ -18,17 +18,26 @@ const LoginPage = () => {
     setError('');
     setIsLoading(true);
 
+    console.log('🔵 [LOGIN] Form submit başladı:', { email: formData.email });
+
     try {
+      console.log('🔵 [LOGIN] API çağrısı yapılıyor...');
       const response = await apiService.login(formData);
+      console.log('🟢 [LOGIN] API response:', response);
+      
       if (response.success) {
+        console.log('✅ [LOGIN] Login başarılı, dashboard\'a yönlendiriliyor...');
         navigate('/dashboard');
       } else {
+        console.log('🔴 [LOGIN] Login başarısız:', response.error);
         setError(response.error || 'E-posta veya şifre hatalı');
       }
     } catch (err) {
+      console.error('🔴 [LOGIN] Exception caught:', err);
       setError('Giriş yapılırken bir hata oluştu');
     } finally {
       setIsLoading(false);
+      console.log('🔵 [LOGIN] Form submit tamamlandı');
     }
   };
 
