@@ -4,11 +4,6 @@
 // Backend API URL - Railway deployment
 const API_URL = import.meta.env.VITE_API_URL || 'https://hzmdatabasebackend-production.up.railway.app/api/v1';
 
-// DEBUG: Log API URL on module load
-console.log('🔧 [API CONFIG] Backend API URL:', API_URL);
-console.log('🔧 [API CONFIG] VITE_API_URL:', import.meta.env.VITE_API_URL);
-console.log('🔧 [API CONFIG] Environment mode:', import.meta.env.MODE);
-
 interface LoginCredentials {
   email: string;
   password: string;
@@ -49,37 +44,24 @@ class ApiService {
 
   async login(credentials: LoginCredentials): Promise<ApiResponse<any>> {
     try {
-      console.log('🌐 [API] Login request başlatılıyor...');
-      console.log('🌐 [API] Backend URL:', API_URL);
-      console.log('🌐 [API] Endpoint:', `${API_URL}/auth/login`);
-      console.log('🌐 [API] Credentials:', { email: credentials.email, password: '***' });
-
       const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: this.getHeaders(),
         body: JSON.stringify(credentials),
-        credentials: 'include', // Include cookies for CORS
+        credentials: 'include',
       });
 
-      console.log('🌐 [API] HTTP Response status:', response.status, response.statusText);
-      console.log('🌐 [API] Response headers:', Object.fromEntries(response.headers.entries()));
-
       const data = await response.json();
-      console.log('🌐 [API] Response data:', data);
 
       if (response.ok && data.token) {
-        console.log('✅ [API] Login başarılı, token alındı');
         this.token = data.token;
-        // Use sessionStorage instead of localStorage for better security
         sessionStorage.setItem('auth_token', data.token);
         sessionStorage.setItem('user', JSON.stringify(data.user));
         return { success: true, data };
       }
 
-      console.log('❌ [API] Login başarısız:', data.error || 'Login failed');
       return { success: false, error: data.error || 'Login failed' };
     } catch (error) {
-      console.error('💥 [API] Login error (EXCEPTION):', error);
       return { success: false, error: 'Network error - Backend unreachable' };
     }
   }

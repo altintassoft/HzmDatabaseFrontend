@@ -20,16 +20,10 @@ const LoginPage = () => {
     setError('');
     setIsLoading(true);
 
-    console.log('🔵 [LOGIN] Form submit başladı:', { email: formData.email });
-
     try {
-      console.log('🔵 [LOGIN] API çağrısı yapılıyor...');
       const response = await apiService.login(formData);
-      console.log('🟢 [LOGIN] API response:', response);
       
       if (response.success) {
-        console.log('✅ [LOGIN] Login başarılı, backend user:', response.data);
-        
         // Backend user'ı Frontend User formatına map et
         const backendUser = response.data.user || response.data;
         const mappedUser = {
@@ -44,8 +38,6 @@ const LoginPage = () => {
           maxTables: (backendUser.role === 'admin' || backendUser.role === 'master_admin') ? -1 : 5,
         };
         
-        console.log('✅ [LOGIN] Mapped user:', mappedUser);
-        
         // Frontend formatındaki user'ı context'e kaydet
         dispatch({ 
           type: 'LOGIN', 
@@ -58,26 +50,18 @@ const LoginPage = () => {
         
         if (userRole === 'master_admin') {
           redirectPath = '/master-admin';
-          console.log('✅ [LOGIN] Master Admin olarak yönlendiriliyor...');
         } else if (userRole === 'admin') {
           redirectPath = '/admin';
-          console.log('✅ [LOGIN] Admin olarak yönlendiriliyor...');
-        } else {
-          console.log('✅ [LOGIN] Customer dashboard\'a yönlendiriliyor...');
         }
         
-        console.log('✅ [LOGIN] Context güncellendi, yönlendirme:', redirectPath);
         navigate(redirectPath);
       } else {
-        console.log('🔴 [LOGIN] Login başarısız:', response.error);
         setError(response.error || 'E-posta veya şifre hatalı');
       }
     } catch (err) {
-      console.error('🔴 [LOGIN] Exception caught:', err);
       setError('Giriş yapılırken bir hata oluştu');
     } finally {
       setIsLoading(false);
-      console.log('🔵 [LOGIN] Form submit tamamlandı');
     }
   };
 
