@@ -1,0 +1,141 @@
+/**
+ * Turkish (TR-TR) Translations
+ * Complete translations for the HZM Database Platform
+ */
+
+export const trTR = {
+  common: {
+    save: 'Kaydet',
+    cancel: 'İptal',
+    delete: 'Sil',
+    edit: 'Düzenle',
+    create: 'Oluştur',
+    search: 'Ara',
+    filter: 'Filtrele',
+    loading: 'Yükleniyor...',
+    error: 'Hata',
+    success: 'Başarılı',
+    warning: 'Uyarı',
+    info: 'Bilgi',
+    yes: 'Evet',
+    no: 'Hayır',
+    back: 'Geri',
+    next: 'İleri',
+    previous: 'Önceki',
+    close: 'Kapat',
+    open: 'Aç',
+    refresh: 'Yenile',
+    export: 'Dışa Aktar',
+    import: 'İçe Aktar',
+    download: 'İndir',
+    upload: 'Yükle',
+    view: 'Görüntüle',
+    details: 'Detaylar',
+    actions: 'İşlemler',
+    settings: 'Ayarlar',
+    logout: 'Çıkış',
+  },
+  
+  auth: {
+    login: 'Giriş Yap',
+    register: 'Kayıt Ol',
+    email: 'E-posta',
+    password: 'Şifre',
+    confirmPassword: 'Şifreyi Onayla',
+    forgotPassword: 'Şifremi Unuttum',
+    resetPassword: 'Şifreyi Sıfırla',
+    rememberMe: 'Beni Hatırla',
+    alreadyHaveAccount: 'Zaten hesabınız var mı?',
+    dontHaveAccount: 'Hesabınız yok mu?',
+    loginSuccess: 'Giriş başarılı',
+    loginError: 'Giriş başarısız',
+    registerSuccess: 'Kayıt başarılı',
+    registerError: 'Kayıt başarısız',
+  },
+  
+  navigation: {
+    home: 'Ana Sayfa',
+    dashboard: 'Kontrol Paneli',
+    projects: 'Projeler',
+    users: 'Kullanıcılar',
+    organizations: 'Organizasyonlar',
+    settings: 'Ayarlar',
+    admin: 'Yönetici',
+    reports: 'Raporlar',
+    apiKeys: 'API Anahtarları',
+    documentation: 'Dokümantasyon',
+  },
+  
+  projects: {
+    title: 'Projeler',
+    create: 'Yeni Proje',
+    edit: 'Projeyi Düzenle',
+    delete: 'Projeyi Sil',
+    name: 'Proje Adı',
+    description: 'Açıklama',
+    status: 'Durum',
+    createdAt: 'Oluşturulma Tarihi',
+    updatedAt: 'Güncellenme Tarihi',
+    noProjects: 'Henüz proje yok',
+    createFirst: 'İlk projenizi oluşturun',
+  },
+  
+  users: {
+    title: 'Kullanıcılar',
+    create: 'Yeni Kullanıcı',
+    edit: 'Kullanıcıyı Düzenle',
+    delete: 'Kullanıcıyı Sil',
+    email: 'E-posta',
+    role: 'Rol',
+    status: 'Durum',
+    active: 'Aktif',
+    inactive: 'Pasif',
+    lastLogin: 'Son Giriş',
+    noUsers: 'Kullanıcı bulunamadı',
+  },
+  
+  organizations: {
+    title: 'Organizasyonlar',
+    create: 'Yeni Organizasyon',
+    edit: 'Organizasyonu Düzenle',
+    delete: 'Organizasyonu Sil',
+    name: 'Organizasyon Adı',
+    members: 'Üyeler',
+    owner: 'Sahip',
+    plan: 'Plan',
+    noOrganizations: 'Henüz organizasyon yok',
+  },
+  
+  apiKeys: {
+    title: 'API Anahtarları',
+    generate: 'Yeni Anahtar Oluştur',
+    regenerate: 'Yeniden Oluştur',
+    delete: 'Anahtarı Sil',
+    key: 'Anahtar',
+    createdAt: 'Oluşturulma Tarihi',
+    lastUsed: 'Son Kullanım',
+    noKeys: 'API anahtarı bulunamadı',
+    copySuccess: 'Anahtar kopyalandı',
+    warning: 'Anahtarınızı güvenli bir yerde saklayın!',
+  },
+  
+  errors: {
+    generic: 'Bir hata oluştu',
+    network: 'Ağ bağlantısı hatası',
+    unauthorized: 'Yetkisiz erişim',
+    notFound: 'Kayıt bulunamadı',
+    serverError: 'Sunucu hatası',
+    validation: 'Doğrulama hatası',
+  },
+  
+  validation: {
+    required: 'Bu alan zorunludur',
+    email: 'Geçerli bir e-posta adresi girin',
+    minLength: 'En az {{min}} karakter olmalıdır',
+    maxLength: 'En fazla {{max}} karakter olmalıdır',
+    passwordMismatch: 'Şifreler eşleşmiyor',
+  },
+};
+
+export type TranslationKeys = typeof trTR;
+

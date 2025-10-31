@@ -1,0 +1,141 @@
+/**
+ * English (en-US) Translations
+ * Complete translations for the HZM Database Platform
+ */
+
+import { TranslationKeys } from './tr-TR';
+
+export const enUS: TranslationKeys = {
+  common: {
+    save: 'Save',
+    cancel: 'Cancel',
+    delete: 'Delete',
+    edit: 'Edit',
+    create: 'Create',
+    search: 'Search',
+    filter: 'Filter',
+    loading: 'Loading...',
+    error: 'Error',
+    success: 'Success',
+    warning: 'Warning',
+    info: 'Info',
+    yes: 'Yes',
+    no: 'No',
+    back: 'Back',
+    next: 'Next',
+    previous: 'Previous',
+    close: 'Close',
+    open: 'Open',
+    refresh: 'Refresh',
+    export: 'Export',
+    import: 'Import',
+    download: 'Download',
+    upload: 'Upload',
+    view: 'View',
+    details: 'Details',
+    actions: 'Actions',
+    settings: 'Settings',
+    logout: 'Logout',
+  },
+  
+  auth: {
+    login: 'Login',
+    register: 'Register',
+    email: 'Email',
+    password: 'Password',
+    confirmPassword: 'Confirm Password',
+    forgotPassword: 'Forgot Password',
+    resetPassword: 'Reset Password',
+    rememberMe: 'Remember Me',
+    alreadyHaveAccount: 'Already have an account?',
+    dontHaveAccount: "Don't have an account?",
+    loginSuccess: 'Login successful',
+    loginError: 'Login failed',
+    registerSuccess: 'Registration successful',
+    registerError: 'Registration failed',
+  },
+  
+  navigation: {
+    home: 'Home',
+    dashboard: 'Dashboard',
+    projects: 'Projects',
+    users: 'Users',
+    organizations: 'Organizations',
+    settings: 'Settings',
+    admin: 'Admin',
+    reports: 'Reports',
+    apiKeys: 'API Keys',
+    documentation: 'Documentation',
+  },
+  
+  projects: {
+    title: 'Projects',
+    create: 'New Project',
+    edit: 'Edit Project',
+    delete: 'Delete Project',
+    name: 'Project Name',
+    description: 'Description',
+    status: 'Status',
+    createdAt: 'Created At',
+    updatedAt: 'Updated At',
+    noProjects: 'No projects yet',
+    createFirst: 'Create your first project',
+  },
+  
+  users: {
+    title: 'Users',
+    create: 'New User',
+    edit: 'Edit User',
+    delete: 'Delete User',
+    email: 'Email',
+    role: 'Role',
+    status: 'Status',
+    active: 'Active',
+    inactive: 'Inactive',
+    lastLogin: 'Last Login',
+    noUsers: 'No users found',
+  },
+  
+  organizations: {
+    title: 'Organizations',
+    create: 'New Organization',
+    edit: 'Edit Organization',
+    delete: 'Delete Organization',
+    name: 'Organization Name',
+    members: 'Members',
+    owner: 'Owner',
+    plan: 'Plan',
+    noOrganizations: 'No organizations yet',
+  },
+  
+  apiKeys: {
+    title: 'API Keys',
+    generate: 'Generate New Key',
+    regenerate: 'Regenerate',
+    delete: 'Delete Key',
+    key: 'Key',
+    createdAt: 'Created At',
+    lastUsed: 'Last Used',
+    noKeys: 'No API keys found',
+    copySuccess: 'Key copied to clipboard',
+    warning: 'Store your key in a secure place!',
+  },
+  
+  errors: {
+    generic: 'An error occurred',
+    network: 'Network connection error',
+    unauthorized: 'Unauthorized access',
+    notFound: 'Record not found',
+    serverError: 'Server error',
+    validation: 'Validation error',
+  },
+  
+  validation: {
+    required: 'This field is required',
+    email: 'Enter a valid email address',
+    minLength: 'Must be at least {{min}} characters',
+    maxLength: 'Must be at most {{max}} characters',
+    passwordMismatch: 'Passwords do not match',
+  },
+};
+

@@ -12,11 +12,14 @@ import {
   Shield,
   Settings as SettingsIcon,
   Crown,
-  DollarSign
+  DollarSign,
+  Globe
 } from 'lucide-react';
 import ConfirmModal from '../../../components/shared/ConfirmModal';
 import CurrencySelector from '../../../components/shared/CurrencySelector';
+import LanguageSelector from '../../../components/shared/LanguageSelector';
 import api from '../../../services/api';
+import { ENDPOINTS } from '../../../constants/endpoints';
 
 interface MasterAdminData {
   email: string;
@@ -386,6 +389,37 @@ const SystemSettingsPage = () => {
               <li>Tüm tenant ve proje verilerine erişim sağlar</li>
               <li>Çok dikkatli kullanılmalı ve paylaşılmamalıdır</li>
             </ul>
+          </div>
+        </div>
+
+        {/* Language Settings Card */}
+        <div className="bg-white rounded-lg shadow-md p-6 mt-6">
+          <div className="flex items-center gap-3 mb-6 pb-4 border-b">
+            <div className="p-3 bg-indigo-100 rounded-lg">
+              <Globe className="text-indigo-600" size={28} />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-gray-800">Dil Ayarları / Language Settings</h2>
+              <p className="text-sm text-gray-600">Uygulama dilini seçin / Select application language</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <LanguageSelector />
+
+            {/* Info */}
+            <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 mt-4">
+              <h3 className="font-semibold text-indigo-900 mb-2 text-sm flex items-center gap-2">
+                <Globe size={16} />
+                Dil Desteği / Language Support
+              </h3>
+              <ul className="text-xs text-indigo-800 space-y-1 list-disc list-inside">
+                <li>✅ Aktif: Türkçe (TR-TR), English (en-US)</li>
+                <li>🔜 Yakında: العربية, Español, Deutsch, Français, Português, Italiano, Русский, 简体中文</li>
+                <li>💾 Seçiminiz otomatik kaydedilir / Your choice is saved automatically</li>
+                <li>🌐 RTL (Right-to-Left) desteği hazır / RTL support ready</li>
+              </ul>
+            </div>
           </div>
         </div>
 

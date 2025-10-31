@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { DatabaseProvider } from './context/DatabaseContext';
+import { I18nProvider } from './i18n';
 import ProtectedRoute from './components/shared/ProtectedRoute';
 import AdminRoute from './components/shared/AdminRoute';
 import SocialMediaDisplay from './components/layout/SocialMediaDisplay';
@@ -74,8 +75,9 @@ const mockSocialLinks = [
 function App() {
   return (
     <HelmetProvider>
-      <DatabaseProvider>
-        <BrowserRouter>
+      <I18nProvider>
+        <DatabaseProvider>
+          <BrowserRouter>
           {/* Global SEO Head */}
           <SEOHead />
           
@@ -215,8 +217,9 @@ function App() {
             {/* Redirect old routes */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
-        </BrowserRouter>
-      </DatabaseProvider>
+          </BrowserRouter>
+        </DatabaseProvider>
+      </I18nProvider>
     </HelmetProvider>
   );
 }
