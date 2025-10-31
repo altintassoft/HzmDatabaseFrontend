@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Database, Users, Shield, Zap, ArrowRight, LogIn, UserPlus } from 'lucide-react';
+import LanguageSelector from '../../../components/shared/LanguageSelector';
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -19,7 +20,8 @@ const HomePage = () => {
               <div className="text-sm text-gray-600 font-medium">DataBase Pro</div>
             </div>
           </div>
-          <div className="flex space-x-3">
+          <div className="flex items-center space-x-3">
+            <LanguageSelector variant="compact" />
             <button
               onClick={() => navigate('/login')}
               className="flex items-center px-4 py-2 text-blue-600 hover:text-blue-700 transition-colors"
