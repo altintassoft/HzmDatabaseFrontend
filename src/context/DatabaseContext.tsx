@@ -197,6 +197,10 @@ type DatabaseContextType = {
   createProject: (name: string, description?: string) => Promise<Project | null>;
   updateProject: (projectId: string, updates: Partial<Project>) => Promise<boolean>;
   deleteProject: (projectId: string) => Promise<boolean>;
+  // Compatibility methods (for existing pages)
+  getAllUsers: () => User[];
+  selectProject: (projectId: string) => void;
+  selectTable: (tableId: string) => void;
 };
 
 const DatabaseContext = createContext<DatabaseContextType | undefined>(undefined);
@@ -383,6 +387,36 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  /**
+   * Get all users (compatibility method)
+   * TODO: Migrate to API call
+   */
+  const getAllUsers = (): User[] => {
+    // Return empty array for now
+    // Pages should migrate to usersService.list()
+    return [];
+  };
+
+  /**
+   * Select project (compatibility method)
+   */
+  const selectProject = (projectId: string) => {
+    dispatch({
+      type: 'SELECT_PROJECT',
+      payload: { projectId },
+    });
+  };
+
+  /**
+   * Select table (compatibility method)
+   */
+  const selectTable = (tableId: string) => {
+    dispatch({
+      type: 'SELECT_TABLE',
+      payload: { tableId },
+    });
+  };
+
   return (
     <DatabaseContext.Provider
       value={{
@@ -395,6 +429,9 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
         createProject,
         updateProject,
         deleteProject,
+        getAllUsers,
+        selectProject,
+        selectTable,
       }}
     >
       {children}
